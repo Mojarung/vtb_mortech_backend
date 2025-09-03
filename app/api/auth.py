@@ -35,7 +35,10 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
         phone=user_in.phone,
         birth_date=user_in.birth_date,
         skills=user_in.skills,
-        education=user_in.education
+        education=user_in.education,
+        is_hr=user_in.is_hr,
+        company=user_in.company,
+        position=user_in.position
     )
     db.add(user)
     await db.commit()

@@ -1,3 +1,4 @@
-from app.models.user import User
+from .user import User
+from .vacancy import Vacancy, VacancyApplication
 
-__all__ = ["User"]
+__all__ = ["User", "Vacancy", "VacancyApplication"]

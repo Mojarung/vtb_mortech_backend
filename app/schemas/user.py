@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr
 
 
 class UserBase(BaseModel):
@@ -14,32 +14,31 @@ class UserBase(BaseModel):
     birth_date: Optional[date] = None
     skills: Optional[str] = None
     education: Optional[str] = None
-    is_active: bool = True
+    is_hr: bool = False
+    company: Optional[str] = None
+    position: Optional[str] = None
 
 
-class UserCreate(BaseModel):
-    username: str = Field(min_length=3, max_length=150)
-    email: EmailStr
-    password: str = Field(min_length=6)
-    about: Optional[str] = None
-    phone: Optional[str] = None
-    birth_date: Optional[date] = None
-    skills: Optional[str] = None
-    education: Optional[str] = None
+class UserCreate(UserBase):
+    password: str
 
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = Field(None, min_length=3, max_length=150)
+    username: Optional[str] = None
     email: Optional[EmailStr] = None
     about: Optional[str] = None
     phone: Optional[str] = None
     birth_date: Optional[date] = None
     skills: Optional[str] = None
     education: Optional[str] = None
+    is_hr: Optional[bool] = None
+    company: Optional[str] = None
+    position: Optional[str] = None
 
 
 class UserRead(UserBase):
     id: int
+    is_active: bool
     created_at: datetime
 
     class Config:
