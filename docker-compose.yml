@@ -9,6 +9,4 @@ services:
       - APP_DATABASE_URL=sqlite+aiosqlite:///./app.db
       - APP_SECRET_KEY=your-secret-key-change-in-production
       - APP_ACCESS_TOKEN_EXPIRE_MINUTES=1440
-    volumes:
-      - ./data:/app/data
     restart: unless-stopped
