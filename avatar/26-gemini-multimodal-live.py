@@ -22,10 +22,18 @@ from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.transports.services.daily import DailyParams
 from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketParams
 from pipecat.transcriptions.language import Language
+from simli import SimliConfig
+from pipecat.services.simli.video import SimliVideoService
 # Load environment variables
 load_dotenv(override=True)
 
-
+logger.add(
+    "pipecat_debug.log",
+    rotation="10 MB",
+    retention="7 days",
+    level="DEBUG",
+    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level} | {name}:{function}:{line} - {message}"
+)
 # We store functions so objects (e.g. SileroVADAnalyzer) don't get
 # instantiated. The function will be called when the desired transport gets
 # selected.
@@ -47,6 +55,10 @@ transport_params = {
     "webrtc": lambda: TransportParams(
         audio_in_enabled=True,
         audio_out_enabled=True,
+        video_out_enabled=True,
+        video_out_is_live=True,
+        video_out_width=512,
+        video_out_height=512,
         # set stop_secs to something roughly similar to the internal setting
         # of the Multimodal Live api, just to align events.
         vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=0.5)),
@@ -65,15 +77,26 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     llm = GeminiMultimodalLiveLLMService(
         api_key=os.getenv("GOOGLE_API_KEY"),
         system_instruction=system_instruction,
-        voice_id="Puck",  # Aoede, Charon, Fenrir, Kore, Puck
+        voice_id="Aoede",  # Aoede, Charon, Fenrir, Kore, Puck
         language=Language.RU_RU
     )
-
+    simli = SimliVideoService(
+        SimliConfig(
+            apiKey=os.getenv("SIMLI_API_KEY"),
+            faceId=os.getenv("SIMLI_FACE_ID"),
+            handleSilence=True,
+            maxSessionLength=180,
+            maxIdleTime=30,
+        ),
+        use_turn_server=True,
+        latency_interval=0
+    )
     # Build the pipeline
     pipeline = Pipeline(
         [
             transport.input(),
             llm,
+            simli,
             transport.output(),
         ]
     )
