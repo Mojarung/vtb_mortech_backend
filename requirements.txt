@@ -1,17 +1,26 @@
+# Core FastAPI dependencies
 fastapi==0.111.0
 pydantic==2.8.0
 pydantic-settings==2.4.0
 uvicorn[standard]==0.30.1
+
+# Database
 sqlalchemy==2.0.31
-passlib[bcrypt]==1.7.4
-python-jose[cryptography]==3.3.0
-aiosqlite==0.20.0
 sqlalchemy-utils==0.41.2
 asyncpg==0.28.0
 psycopg2-binary==2.9.9
+aiosqlite==0.20.0
 
-# OCR dependencies
+# Authentication & Security
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+
+# AI Service (OpenRouter)
+aiohttp==3.9.1
+
+# PDF Processing & OCR
 PyPDF2==3.0.1
+pdfplumber==0.10.3
 pdf2image==1.17.0
 pytesseract==0.3.10
 Pillow==10.4.0

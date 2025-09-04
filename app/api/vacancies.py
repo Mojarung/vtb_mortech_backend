@@ -1,5 +1,8 @@
-from __future__ import annotations
+"""
+API роутер для управления вакансиями
+"""
 
+import logging
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -9,14 +12,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.models import User, Vacancy, VacancyApplication
 from app.schemas.vacancy import (
-    VacancyCreate, 
-    VacancyRead, 
+    VacancyCreate,
+    VacancyRead,
     VacancyUpdate,
-    VacancyApplicationCreate,
-    VacancyApplicationRead,
-    VacancyApplicationUpdate
+    VacancyApplicationWithDetails
 )
 from app.api.deps import get_current_user
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/vacancies", tags=["vacancies"])
 
@@ -27,20 +30,35 @@ async def create_vacancy(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Создать вакансию (только для HR)"""
+    """
+    Создание новой вакансии (только для HR)
+    """
     if not current_user.is_hr:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Только HR могут создавать вакансии"
         )
     
+    # Создаем вакансию
     db_vacancy = Vacancy(
-        **vacancy.dict(),
-        hr_user_id=current_user.id
+        title=vacancy.title,
+        company_name=vacancy.company_name,
+        location=vacancy.location,
+        salary_min=vacancy.salary_min,
+        salary_max=vacancy.salary_max,
+        experience_years=vacancy.experience_years,
+        requirements=vacancy.requirements,
+        conditions=vacancy.conditions,
+        about=vacancy.about,
+        creator_id=current_user.id
     )
+    
     db.add(db_vacancy)
     await db.commit()
     await db.refresh(db_vacancy)
+    
+    logger.info(f"Vacancy created: {db_vacancy.title} by {current_user.username}")
+    
     return db_vacancy
 
 
@@ -50,14 +68,18 @@ async def get_vacancies(
     limit: int = 100,
     db: AsyncSession = Depends(get_db)
 ):
-    """Получить список всех активных вакансий"""
+    """
+    Получение списка всех вакансий
+    """
     result = await db.execute(
         select(Vacancy)
-        .where(Vacancy.is_active == True)
         .offset(skip)
         .limit(limit)
+        .order_by(Vacancy.created_at.desc())
     )
-    return result.scalars().all()
+    
+    vacancies = result.scalars().all()
+    return vacancies
 
 
 @router.get("/{vacancy_id}", response_model=VacancyRead)
@@ -65,10 +87,10 @@ async def get_vacancy(
     vacancy_id: int,
     db: AsyncSession = Depends(get_db)
 ):
-    """Получить вакансию по ID"""
-    result = await db.execute(
-        select(Vacancy).where(Vacancy.id == vacancy_id)
-    )
+    """
+    Получение конкретной вакансии
+    """
+    result = await db.execute(select(Vacancy).where(Vacancy.id == vacancy_id))
     vacancy = result.scalar_one_or_none()
     
     if not vacancy:
@@ -87,30 +109,36 @@ async def update_vacancy(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Обновить вакансию (только HR создатель)"""
-    result = await db.execute(
-        select(Vacancy).where(Vacancy.id == vacancy_id)
-    )
-    db_vacancy = result.scalar_one_or_none()
+    """
+    Обновление вакансии (только создатель)
+    """
+    result = await db.execute(select(Vacancy).where(Vacancy.id == vacancy_id))
+    vacancy = result.scalar_one_or_none()
     
-    if not db_vacancy:
+    if not vacancy:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Вакансия не найдена"
         )
     
-    if db_vacancy.hr_user_id != current_user.id:
+    # Проверяем права доступа
+    if current_user.id != vacancy.creator_id and not current_user.is_hr:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Только создатель может редактировать вакансию"
+            detail="Вы можете редактировать только свои вакансии"
         )
     
-    for field, value in vacancy_update.dict(exclude_unset=True).items():
-        setattr(db_vacancy, field, value)
+    # Обновляем поля
+    update_data = vacancy_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(vacancy, field, value)
     
     await db.commit()
-    await db.refresh(db_vacancy)
-    return db_vacancy
+    await db.refresh(vacancy)
+    
+    logger.info(f"Vacancy {vacancy_id} updated by {current_user.username}")
+    
+    return vacancy
 
 
 @router.delete("/{vacancy_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -119,93 +147,42 @@ async def delete_vacancy(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Удалить вакансию (только HR создатель)"""
-    result = await db.execute(
-        select(Vacancy).where(Vacancy.id == vacancy_id)
-    )
-    db_vacancy = result.scalar_one_or_none()
-    
-    if not db_vacancy:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Вакансия не найдена"
-        )
-    
-    if db_vacancy.hr_user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Только создатель может удалять вакансию"
-        )
-    
-    await db.delete(db_vacancy)
-    await db.commit()
-
-
-@router.post("/{vacancy_id}/apply", response_model=VacancyApplicationRead)
-async def apply_to_vacancy(
-    vacancy_id: int,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    """Подать заявку на вакансию"""
-    # Проверяем что вакансия существует и активна
-    result = await db.execute(
-        select(Vacancy).where(
-            Vacancy.id == vacancy_id,
-            Vacancy.is_active == True
-        )
-    )
+    """
+    Удаление вакансии (только создатель)
+    """
+    result = await db.execute(select(Vacancy).where(Vacancy.id == vacancy_id))
     vacancy = result.scalar_one_or_none()
     
     if not vacancy:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Вакансия не найдена или неактивна"
+            detail="Вакансия не найдена"
         )
     
-    # Проверяем что пользователь не HR
-    if current_user.is_hr:
+    # Проверяем права доступа
+    if current_user.id != vacancy.creator_id and not current_user.is_hr:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="HR не могут подавать заявки на вакансии"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Вы можете удалять только свои вакансии"
         )
     
-    # Проверяем что заявка уже не подана
-    existing_application = await db.execute(
-        select(VacancyApplication).where(
-            VacancyApplication.vacancy_id == vacancy_id,
-            VacancyApplication.candidate_id == current_user.id
-        )
-    )
-    
-    if existing_application.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Заявка уже подана"
-        )
-    
-    # Создаем заявку
-    application = VacancyApplication(
-        vacancy_id=vacancy_id,
-        candidate_id=current_user.id
-    )
-    db.add(application)
+    await db.delete(vacancy)
     await db.commit()
-    await db.refresh(application)
-    return application
+    
+    logger.info(f"Vacancy {vacancy_id} deleted by {current_user.username}")
 
 
-@router.get("/{vacancy_id}/applications", response_model=List[VacancyApplicationRead])
+@router.get("/{vacancy_id}/applications", response_model=List[VacancyApplicationWithDetails])
 async def get_vacancy_applications(
     vacancy_id: int,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Получить заявки на вакансию (только HR создатель)"""
-    # Проверяем что вакансия существует
-    result = await db.execute(
-        select(Vacancy).where(Vacancy.id == vacancy_id)
-    )
+    """
+    Получение заявок на вакансию (только создатель вакансии)
+    """
+    # Проверяем существование вакансии
+    result = await db.execute(select(Vacancy).where(Vacancy.id == vacancy_id))
     vacancy = result.scalar_one_or_none()
     
     if not vacancy:
@@ -215,54 +192,78 @@ async def get_vacancy_applications(
         )
     
     # Проверяем права доступа
-    if vacancy.hr_user_id != current_user.id:
+    if current_user.id != vacancy.creator_id and not current_user.is_hr:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Только создатель может просматривать заявки"
+            detail="Вы можете просматривать заявки только на свои вакансии"
         )
     
+    # Получаем заявки с информацией о кандидатах
     result = await db.execute(
-        select(VacancyApplication).where(
-            VacancyApplication.vacancy_id == vacancy_id
-        )
+        select(VacancyApplication, User)
+        .join(User, VacancyApplication.candidate_id == User.id)
+        .where(VacancyApplication.vacancy_id == vacancy_id)
+        .order_by(VacancyApplication.applied_at.desc())
     )
-    return result.scalars().all()
+    
+    applications = []
+    for application, candidate in result:
+        app_data = {
+            "id": application.id,
+            "vacancy_id": application.vacancy_id,
+            "candidate_id": application.candidate_id,
+            "status": application.status,
+            "cover_letter": application.cover_letter,
+            "notes": application.notes,
+            "resume_file_path": application.resume_file_path,
+            "resume_file_name": application.resume_file_name,
+            "resume_file_size": application.resume_file_size,
+            "ai_recommendation": application.ai_recommendation,
+            "ai_match_percentage": application.ai_match_percentage,
+            "ai_analysis_date": application.ai_analysis_date,
+            "interview_date": application.interview_date,
+            "interview_link": application.interview_link,
+            "interview_notes": application.interview_notes,
+            "applied_at": application.applied_at,
+            "status_updated_at": application.status_updated_at,
+            "candidate": {
+                "id": candidate.id,
+                "username": candidate.username,
+                "email": candidate.email,
+                "skills": candidate.skills,
+                "education": candidate.education,
+                "experience_years": candidate.experience_years
+            },
+            "vacancy": {
+                "id": vacancy.id,
+                "title": vacancy.title,
+                "company_name": vacancy.company_name
+            }
+        }
+        applications.append(app_data)
+    
+    return applications
 
 
-@router.put("/applications/{application_id}", response_model=VacancyApplicationRead)
-async def update_application_status(
-    application_id: int,
-    application_update: VacancyApplicationUpdate,
+@router.get("/my/created", response_model=List[VacancyRead])
+async def get_my_vacancies(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Обновить статус заявки (только HR создатель вакансии)"""
-    result = await db.execute(
-        select(VacancyApplication).where(VacancyApplication.id == application_id)
-    )
-    application = result.scalar_one_or_none()
-    
-    if not application:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Заявка не найдена"
-        )
-    
-    # Проверяем права доступа
-    vacancy_result = await db.execute(
-        select(Vacancy).where(Vacancy.id == application.vacancy_id)
-    )
-    vacancy = vacancy_result.scalar_one_or_none()
-    
-    if vacancy.hr_user_id != current_user.id:
+    """
+    Получение вакансий, созданных текущим пользователем
+    """
+    if not current_user.is_hr:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Только создатель вакансии может изменять статус заявки"
+            detail="Только HR могут создавать вакансии"
         )
     
-    for field, value in application_update.dict(exclude_unset=True).items():
-        setattr(application, field, value)
+    result = await db.execute(
+        select(Vacancy)
+        .where(Vacancy.creator_id == current_user.id)
+        .order_by(Vacancy.created_at.desc())
+    )
     
-    await db.commit()
-    await db.refresh(application)
-    return application
+    vacancies = result.scalars().all()
+    return vacancies
