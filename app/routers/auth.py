@@ -1,3 +1,4 @@
+# auth.py - исправленная версия для установки куки
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
@@ -48,15 +49,17 @@ def login_user(user_credentials: UserLogin, response: Response, db: Session = De
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    # Set HttpOnly cookie so browser will send it with requests (credentials: 'include')
-    # Cookie is set by backend to ensure it is accepted by the browser for cross-site requests
+    
+    # Настройки куки для HTTPS кросс-доменных запросов
     response.set_cookie(
         key="access_token",
         value=access_token,
+        max_age=settings.access_token_expire_minutes * 60,
         httponly=True,
         secure=True,
         samesite="none",
         path="/",
+        domain=None  # Не устанавливаем домен для кросс-доменных запросов
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
@@ -64,3 +67,14 @@ def login_user(user_credentials: UserLogin, response: Response, db: Session = De
 @router.get("/me", response_model=UserResponse)
 def get_current_user_profile(current_user: User = Depends(get_current_user)):
     return current_user
+
+@router.post("/logout")
+def logout_user(response: Response):
+    response.delete_cookie(
+        key="access_token", 
+        path="/",
+        domain=None,
+        secure=True,
+        samesite="none"
+    )
+    return {"message": "Successfully logged out"}
