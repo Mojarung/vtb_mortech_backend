@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     
     upload_dir: str = "uploads"
     
+    # Resume Analysis Service Configuration
+    agent_id: str = ""
+    api_key: str = ""
+    base_url: str = "https://agent.timeweb.cloud"
+    
     class Config:
         env_file = ".env"
         # Разрешаем переопределение переменными окружения

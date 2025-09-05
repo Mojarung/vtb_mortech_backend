@@ -13,6 +13,9 @@ services:
       - SECRET_KEY=your-secret-key-here-change-in-production
       - ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - AGENT_ID=7e7605da-7f02-4c74-8fa1-31c95dcbbab2
+      - API_KEY=your_api_key_here
+      - BASE_URL=https://agent.timeweb.cloud
     depends_on:
       db-check:
         condition: service_completed_successfully

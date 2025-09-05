@@ -145,3 +145,38 @@ class InterviewResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# Resume Analysis Schemas (from resume_analysis)
+class ResumeAnalyzeRequest(BaseModel):
+    job_description: str
+    resume_text: str
+
+class BasicInfo(BaseModel):
+    name: Optional[str] = None
+    position: Optional[str] = None
+    experience: Optional[str] = None
+    education: Optional[str] = None
+    upload_date: str
+    match_score: str
+    key_skills: List[str]
+    recommendation: str
+
+class ExtendedInfo(BaseModel):
+    projects: List[str]
+    work_experience: List[str]
+    technologies: List[str]
+    achievements: List[str]
+
+class ResumeQuality(BaseModel):
+    structured: bool
+    effort_level: str
+
+class AntiManipulation(BaseModel):
+    suspicious_phrases_found: bool
+    examples: List[str]
+
+class ResumeAnalyzeResponse(BaseModel):
+    basic_info: BasicInfo
+    extended_info: ExtendedInfo
+    resume_quality: ResumeQuality
+    anti_manipulation: AntiManipulation

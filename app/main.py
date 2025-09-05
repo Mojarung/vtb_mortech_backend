@@ -1,9 +1,14 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, vacancies, resumes, interviews
+from app.routers import auth, vacancies, resumes, interviews, resume_analysis
 from app.database import create_tables
 from app.logging_config import logger, log_startup, log_request
 import time
+from dotenv import load_dotenv
+import os
+
+# Загружаем переменные окружения из .env файла
+load_dotenv()
 
 app = FastAPI(title="VTB HR Backend", version="1.0.0")
 
@@ -35,6 +40,7 @@ app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(vacancies.router, prefix="/vacancies", tags=["vacancies"])
 app.include_router(resumes.router, prefix="/resumes", tags=["resumes"])
 app.include_router(interviews.router, prefix="/interviews", tags=["interviews"])
+app.include_router(resume_analysis.router, prefix="/resume-analysis", tags=["resume-analysis"])
 
 @app.on_event("startup")
 async def startup_event():
@@ -54,3 +60,7 @@ async def startup_event():
 async def root():
     logger.info("Root endpoint accessed")
     return {"message": "VTB HR Backend API"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
