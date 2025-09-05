@@ -38,10 +38,17 @@ app.include_router(interviews.router, prefix="/interviews", tags=["interviews"])
 
 @app.on_event("startup")
 async def startup_event():
-    log_startup("Приложение запускается...")
-    create_tables()
-    log_startup("Таблицы созданы успешно!")
-    log_startup("VTB HR Backend готов к работе!")
+    try:
+        log_startup("Приложение запускается...")
+        log_startup("Проверяем подключение к базе данных...")
+        create_tables()
+        log_startup("Таблицы созданы успешно!")
+        log_startup("VTB HR Backend готов к работе!")
+    except Exception as e:
+        logger.error(f"STARTUP ERROR: {str(e)}")
+        # Не падаем, продолжаем работу
+        log_startup("Приложение запущено с ошибками базы данных")
+
 
 @app.get("/")
 async def root():
