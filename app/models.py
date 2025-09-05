@@ -1,0 +1,128 @@
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, JSON, Enum, Float
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+from datetime import datetime
+import enum
+
+Base = declarative_base()
+
+class UserRole(enum.Enum):
+    HR = "hr"
+    USER = "user"
+
+class VacancyStatus(enum.Enum):
+    OPEN = "open"
+    CLOSED = "closed"
+
+class InterviewStatus(enum.Enum):
+    NOT_STARTED = "not_started"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    role = Column(Enum(UserRole), nullable=False, default=UserRole.USER)
+    full_name = Column(String)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    vacancies = relationship("Vacancy", back_populates="creator")
+    resumes = relationship("Resume", back_populates="user")
+
+class Vacancy(Base):
+    __tablename__ = "vacancies"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=False)
+    requirements = Column(Text)
+    salary_from = Column(Integer)
+    salary_to = Column(Integer)
+    location = Column(String)
+    employment_type = Column(String)
+    experience_level = Column(String)
+    status = Column(Enum(VacancyStatus), default=VacancyStatus.OPEN)
+    original_url = Column(String)
+    creator_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    creator = relationship("User", back_populates="vacancies")
+    resumes = relationship("Resume", back_populates="vacancy")
+    interviews = relationship("Interview", back_populates="vacancy")
+
+class Resume(Base):
+    __tablename__ = "resumes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    vacancy_id = Column(Integer, ForeignKey("vacancies.id"))
+    file_path = Column(String, nullable=False)
+    original_filename = Column(String, nullable=False)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    processed = Column(Boolean, default=False)
+    uploaded_by_hr = Column(Boolean, default=False)
+    
+    user = relationship("User", back_populates="resumes")
+    vacancy = relationship("Vacancy", back_populates="resumes")
+    analysis = relationship("ResumeAnalysis", back_populates="resume", uselist=False)
+    interviews = relationship("Interview", back_populates="resume")
+
+class ResumeAnalysis(Base):
+    __tablename__ = "resume_analyses"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    resume_id = Column(Integer, ForeignKey("resumes.id"), unique=True)
+    
+    name = Column(String)
+    position = Column(String)
+    experience = Column(String)
+    education = Column(String)
+    upload_date = Column(String)
+    match_score = Column(String)
+    key_skills = Column(JSON)
+    recommendation = Column(String)
+    
+    projects = Column(JSON)
+    work_experience = Column(JSON)
+    technologies = Column(JSON)
+    achievements = Column(JSON)
+    
+    structured = Column(Boolean)
+    effort_level = Column(String)
+    
+    suspicious_phrases_found = Column(Boolean)
+    suspicious_examples = Column(JSON)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    resume = relationship("Resume", back_populates="analysis")
+
+class Interview(Base):
+    __tablename__ = "interviews"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    vacancy_id = Column(Integer, ForeignKey("vacancies.id"))
+    resume_id = Column(Integer, ForeignKey("resumes.id"))
+    status = Column(Enum(InterviewStatus), default=InterviewStatus.NOT_STARTED)
+    
+    scheduled_date = Column(DateTime)
+    start_date = Column(DateTime)
+    end_date = Column(DateTime)
+    duration_minutes = Column(Integer)
+    
+    dialogue = Column(JSON)
+    summary = Column(Text)
+    pass_percentage = Column(Float)
+    notes = Column(Text)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    vacancy = relationship("Vacancy", back_populates="interviews")
+    resume = relationship("Resume", back_populates="interviews")

@@ -1,57 +1,149 @@
-# FastAPI Auth/User Example
+# VTB HR Backend
 
-## Setup
+FastAPI backend для системы управления вакансиями и резюме.
+
+## Функциональность
+
+- Аутентификация пользователей (HR и обычные пользователи) с JWT токенами
+- Управление вакансиями (создание, редактирование, удаление)
+- Загрузка и обработка резюме (только TXT файлы)
+- Система собеседований
+- Анализ резюме с использованием ИИ
+
+## Установка и запуск
+
+### Требования
+- Python 3.10+
+- PostgreSQL
+- SSL сертификат для подключения к БД
+
+### Настройка
+
+1. Установите зависимости:
+```bash
+pip install -r requirements.txt
+```
+
+2. Создайте файл `.env` на основе `.env.example`:
+```bash
+cp .env.example .env
+```
+
+3. Убедитесь что SSL сертификат находится в `~/.cloud-certs/root.crt`
+
+### Миграции базы данных
+
+1. Инициализация Alembic (только при первом запуске):
+```bash
+alembic init alembic
+```
+
+2. Создание первой миграции:
+```bash
+alembic revision --autogenerate -m "Initial migration"
+```
+
+3. Применение миграций:
+```bash
+alembic upgrade head
+```
+
+### Запуск сервера
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-## User Model
+Сервер будет доступен по адресу: http://localhost:8000
 
-Users now have comprehensive profiles with:
-- **Required fields:** username, email, password
-- **Optional fields:** about, phone, birth_date, skills, education
-- **System fields:** id, is_active, created_at
+API документация: http://localhost:8000/docs
 
-## Endpoints
+## Структура проекта
 
-### Authentication
-- **POST /auth/register** - Create new user
-  ```json
-  {
-    "username": "john_doe",
-    "email": "john@example.com", 
-    "password": "secret123",
-    "about": "Software developer",
-    "phone": "+1234567890",
-    "birth_date": "1990-01-01",
-    "skills": "Python, FastAPI, SQL",
-    "education": "Computer Science Degree"
-  }
-  ```
+```
+app/
+├── __init__.py
+├── main.py              # Основное приложение FastAPI
+├── config.py            # Конфигурация
+├── database.py          # Настройка БД
+├── models.py            # SQLAlchemy модели
+├── schemas.py           # Pydantic схемы
+├── auth.py              # Аутентификация и авторизация
+├── routers/             # API роутеры
+│   ├── __init__.py
+│   ├── auth.py          # Аутентификация
+│   ├── vacancies.py     # Вакансии
+│   ├── resumes.py       # Резюме
+│   └── interviews.py    # Собеседования
+└── services/            # Бизнес-логика
+    ├── __init__.py
+    └── resume_processor.py  # Обработка резюме
+```
 
-- **POST /auth/login** - Login with username/email + password
-  - Query params: `username` (can be username or email), `password`
+## API Endpoints
 
-### User Management
-- **GET /users/me** - Get current user profile (Authorization: Bearer <token>)
-- **PUT /auth/me** - Update current user profile (Authorization: Bearer <token>)
-- **GET /users** - List all users (Authorization: Bearer <token>)
-- **GET /users/{user_id}** - Get specific user (Authorization: Bearer <token>)
+### Аутентификация
+- `POST /auth/register` - Регистрация пользователя
+- `POST /auth/login` - Вход в систему
 
-## Environment
+### Вакансии
+- `GET /vacancies/` - Получить все вакансии
+- `GET /vacancies/open` - Получить открытые вакансии
+- `POST /vacancies/` - Создать вакансию (только HR)
+- `PUT /vacancies/{id}` - Обновить вакансию (только HR)
+- `DELETE /vacancies/{id}` - Удалить вакансию (только HR)
 
-- APP_DATABASE_URL: default sqlite+aiosqlite:///./app.db
-- APP_SECRET_KEY: set a strong key
-- APP_ACCESS_TOKEN_EXPIRE_MINUTES: default 1440
+### Резюме
+- `POST /resumes/upload/{vacancy_id}` - Загрузить резюме пользователем
+- `POST /resumes/upload-by-hr/{vacancy_id}` - Загрузить резюме HR
+- `GET /resumes/vacancy/{vacancy_id}` - Получить резюме по вакансии (только HR)
+- `GET /resumes/{resume_id}/analysis` - Получить анализ резюме
+- `GET /resumes/{resume_id}/download` - Скачать резюме
 
-## Database
+### Собеседования
+- `POST /interviews/` - Создать собеседование (только HR)
+- `GET /interviews/` - Получить все собеседования (только HR)
+- `GET /interviews/{id}` - Получить собеседование
+- `PUT /interviews/{id}` - Обновить собеседование (только HR)
 
-The app uses SQLite by default. If you need to recreate the database after schema changes:
+## Роли пользователей
+
+- **HR** - может создавать вакансии, загружать резюме, назначать собеседования
+- **USER** - может просматривать открытые вакансии, загружать свои резюме
+
+## Обработка файлов
+
+Поддерживаемые форматы резюме: TXT
+
+Файлы сохраняются в структуре:
+```
+uploads/
+└── vacancy_{id}/
+    ├── resume1.txt
+    ├── resume2.txt
+    └── user_{user_id}_resume.txt
+```
+
+## Миграции
+
+Для создания новой миграции после изменения моделей:
 ```bash
-rm -f app.db
-uvicorn app.main:app --reload
+alembic revision --autogenerate -m "Description of changes"
+alembic upgrade head
+```
+
+Для отката миграции:
+```bash
+alembic downgrade -1
+```
+
+## Разработка
+
+Для разработки рекомендуется использовать виртуальное окружение:
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# или
+venv\Scripts\activate     # Windows
+pip install -r requirements.txt
 ```

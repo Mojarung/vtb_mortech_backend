@@ -1,5 +1,4 @@
 __pycache__/
-.env
 .venv/
 *.sqlite3
 *.db
@@ -9,6 +8,7 @@ __pycache__/
 .vscode/
 venv/
 uploads/
+.env
 # SSH keys and sensitive files
 *.pem
 *.key
@@ -17,6 +17,3 @@ id_rsa.pub
 *.pub
 seqwe
 seqwe.pub
-
-# Environment files
-.env
