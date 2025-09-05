@@ -50,14 +50,14 @@ def login_user(user_credentials: UserLogin, response: Response, db: Session = De
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     
-    # Настройки куки для HTTPS кросс-доменных запросов
+    # Production настройки куки
     response.set_cookie(
         key="access_token",
         value=access_token,
         max_age=settings.access_token_expire_minutes * 60,
         httponly=True,
-        secure=True,
-        samesite="none",
+        secure=True,  # Требует HTTPS в production
+        samesite="none",  # Для кросс-доменных запросов
         path="/",
         domain=None  # Не устанавливаем домен для кросс-доменных запросов
     )
@@ -70,11 +70,12 @@ def get_current_user_profile(current_user: User = Depends(get_current_user)):
 
 @router.post("/logout")
 def logout_user(response: Response):
+    # Production настройки для удаления куки
     response.delete_cookie(
         key="access_token", 
         path="/",
         domain=None,
-        secure=True,
-        samesite="none"
+        secure=True,  # Требует HTTPS в production
+        samesite="none"  # Для кросс-доменных запросов
     )
     return {"message": "Successfully logged out"}

@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     secret_key: str = "your-secret-key-here-change-in-production"
     algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
+    access_token_expire_minutes: int = 60  # Увеличиваем время жизни токена для production
     
     # Настройки базы данных (могут переопределяться переменными окружения)
     database_host: str = "94.228.113.42"

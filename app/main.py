@@ -28,14 +28,14 @@ async def log_requests(request: Request, call_next):
     
     return response
 
+# Production CORS настройки
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://mojarung-vtb-mortech-frontend-9b15.twc1.net",
-        "http://localhost:3000",
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
     expose_headers=["Set-Cookie", "Authorization"]
 )
