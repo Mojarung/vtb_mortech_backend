@@ -32,12 +32,11 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://mojarung-vtb-mortech-frontend-9b15.twc1.net",
-        "http://localhost:3000",  # Для локальной разработки
-        "*"  # Временно для тестирования
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Set-Cookie", "Authorization"]
 )
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])

@@ -1,5 +1,5 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
@@ -34,7 +34,7 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 @router.post("/login", response_model=Token)
-def login_user(user_credentials: UserLogin, db: Session = Depends(get_db)):
+def login_user(user_credentials: UserLogin, response: Response, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == user_credentials.username).first()
     
     if not user or not verify_password(user_credentials.password, user.hashed_password):
@@ -48,6 +48,17 @@ def login_user(user_credentials: UserLogin, db: Session = Depends(get_db)):
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
+    # Set HttpOnly cookie so browser will send it with requests (credentials: 'include')
+    # Cookie is set by backend to ensure it is accepted by the browser for cross-site requests
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/",
+    )
+
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/me", response_model=UserResponse)
