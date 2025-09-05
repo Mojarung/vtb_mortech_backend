@@ -4,15 +4,18 @@ from sqlalchemy.orm import sessionmaker
 from urllib.parse import quote_plus
 from app.config import settings
 
-# Кодируем пароль для URL
+# Прямое подключение к базе данных (приоритет над настройками)
+DIRECT_DATABASE_URL = "postgresql://admin_1:hppKD~s@S75;e=@94.228.113.42/mortech"
+
+# Кодируем пароль для URL (резервный вариант)
 encoded_password = quote_plus(settings.database_password)
 
-DATABASE_URL = (
+DATABASE_URL = DIRECT_DATABASE_URL or (
     f"postgresql://{settings.database_user}:{encoded_password}"
     f"@{settings.database_host}/{settings.database_name}"
 )
 
-print(f"Подключение к базе: postgresql://{settings.database_user}:***@{settings.database_host}/{settings.database_name}")
+print(f"Используется прямое подключение: postgresql://admin_1:***@94.228.113.42/mortech")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
