@@ -19,11 +19,8 @@ target_metadata = Base.metadata
 from app.config import settings
 
 def get_url():
-    encoded_password = quote_plus(settings.database_password)
-    return (
-        f"postgresql://{settings.database_user}:{encoded_password}"
-        f"@{settings.database_host}/{settings.database_name}"
-    )
+    # Используем прямое подключение (как в app/database.py)
+    return "postgresql://admin_1:jopabobra@94.228.113.42/mortech"
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""

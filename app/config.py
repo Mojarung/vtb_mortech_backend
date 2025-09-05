@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     database_host: str = "94.228.113.42"
     database_name: str = "mortech"
     database_user: str = "admin_1"
-    database_password: str = r"hppKD~s@S75;e="
+    database_password: str = "jopabobra"
     
     upload_dir: str = "uploads"
     
