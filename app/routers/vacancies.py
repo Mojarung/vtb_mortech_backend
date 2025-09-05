@@ -27,7 +27,7 @@ def get_vacancies(
     status: VacancyStatus = None,
     db: Session = Depends(get_db)
 ):
-    query = db.query(Vacancy)
+    query = db.query(Vacancy).join(User)
     if status:
         query = query.filter(Vacancy.status == status)
     return query.offset(skip).limit(limit).all()
@@ -38,13 +38,13 @@ def get_open_vacancies(
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    return db.query(Vacancy).filter(
+    return db.query(Vacancy).join(User).filter(
         Vacancy.status == VacancyStatus.OPEN
     ).offset(skip).limit(limit).all()
 
 @router.get("/{vacancy_id}", response_model=VacancyResponse)
 def get_vacancy(vacancy_id: int, db: Session = Depends(get_db)):
-    vacancy = db.query(Vacancy).filter(Vacancy.id == vacancy_id).first()
+    vacancy = db.query(Vacancy).join(User).filter(Vacancy.id == vacancy_id).first()
     if not vacancy:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

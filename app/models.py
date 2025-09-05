@@ -19,6 +19,14 @@ class InterviewStatus(enum.Enum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
 
+class ApplicationStatus(enum.Enum):
+    PENDING = "pending"  # На рассмотрении
+    REVIEWED = "reviewed"  # Просмотрено
+    INTERVIEW_SCHEDULED = "interview_scheduled"  # Интервью назначено
+    INTERVIEW_COMPLETED = "interview_completed"  # Интервью пройдено
+    ACCEPTED = "accepted"  # Принято
+    REJECTED = "rejected"  # Отклонено
+
 class User(Base):
     __tablename__ = "users"
     
@@ -67,6 +75,9 @@ class Resume(Base):
     uploaded_at = Column(DateTime, default=datetime.utcnow)
     processed = Column(Boolean, default=False)
     uploaded_by_hr = Column(Boolean, default=False)
+    status = Column(Enum(ApplicationStatus), default=ApplicationStatus.PENDING)
+    notes = Column(Text)  # Заметки HR
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     user = relationship("User", back_populates="resumes")
     vacancy = relationship("Vacancy", back_populates="resumes")

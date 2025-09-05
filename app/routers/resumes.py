@@ -110,6 +110,22 @@ async def upload_resume_by_user(
     
     return db_resume
 
+@router.get("/", response_model=List[ResumeResponse])
+def get_user_resumes(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Получение заявок текущего пользователя"""
+    return db.query(Resume).join(Vacancy).filter(Resume.user_id == current_user.id).all()
+
+@router.get("/candidates", response_model=List[ResumeResponse])
+def get_all_candidates(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_hr_user)
+):
+    """Получение всех кандидатов для HR"""
+    return db.query(Resume).join(User).filter(Resume.user_id.isnot(None)).all()
+
 @router.get("/vacancy/{vacancy_id}", response_model=List[ResumeResponse])
 def get_resumes_by_vacancy(
     vacancy_id: int,

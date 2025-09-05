@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from app.models import UserRole, VacancyStatus, InterviewStatus
+from app.models import UserRole, VacancyStatus, InterviewStatus, ApplicationStatus
 
 class UserCreate(BaseModel):
     username: str
@@ -82,6 +82,11 @@ class ResumeResponse(BaseModel):
     uploaded_at: datetime
     processed: bool
     uploaded_by_hr: bool
+    status: ApplicationStatus
+    notes: Optional[str] = None
+    updated_at: datetime
+    user: Optional[UserResponse] = None
+    vacancy: Optional[VacancyResponse] = None
 
     class Config:
         from_attributes = True

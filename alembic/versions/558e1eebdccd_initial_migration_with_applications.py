@@ -1,8 +1,8 @@
-"""Initial migration
+"""Initial migration with applications
 
-Revision ID: b04a655e852d
-Revises: 
-Create Date: 2025-09-05 16:37:18.710388
+Revision ID: 558e1eebdccd
+Revises: 53a3fe5d92ba
+Create Date: 2025-09-05 21:46:57.218474
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'b04a655e852d'
-down_revision: Union[str, None] = None
+revision: str = '558e1eebdccd'
+down_revision: Union[str, Sequence[str], None] = '53a3fe5d92ba'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -63,6 +63,9 @@ def upgrade() -> None:
     sa.Column('uploaded_at', sa.DateTime(), nullable=True),
     sa.Column('processed', sa.Boolean(), nullable=True),
     sa.Column('uploaded_by_hr', sa.Boolean(), nullable=True),
+    sa.Column('status', sa.Enum('PENDING', 'REVIEWED', 'INTERVIEW_SCHEDULED', 'INTERVIEW_COMPLETED', 'ACCEPTED', 'REJECTED', name='applicationstatus'), nullable=True),
+    sa.Column('notes', sa.Text(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.ForeignKeyConstraint(['vacancy_id'], ['vacancies.id'], ),
     sa.PrimaryKeyConstraint('id')
