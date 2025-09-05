@@ -22,8 +22,6 @@ wheels/
 README.md
 LICENSE
 *.md
-.env
-.env.*
 app.db
 *.db
 .pytest_cache/
