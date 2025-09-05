@@ -32,6 +32,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://mojarung-vtb-mortech-frontend-9b15.twc1.net",
+        "http://localhost:3000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
