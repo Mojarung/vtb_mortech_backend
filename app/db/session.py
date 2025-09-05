@@ -8,18 +8,9 @@ class Base(DeclarativeBase):
     pass
 
 
-# Создаем async engine для PostgreSQL
 engine = create_async_engine(
-    "postgresql+asyncpg://",  # Пустой URL
+    settings.database_url,
     echo=settings.debug,
-    connect_args={
-        "host": settings.postgres_host,
-        "port": 5432,
-        "database": settings.postgres_database,
-        "user": settings.postgres_user,
-        "password": settings.postgres_password,
-        "ssl": False  # отключаем SSL как в тесте
-    }
 )
 
 AsyncSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False, class_=AsyncSession)

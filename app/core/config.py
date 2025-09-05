@@ -4,8 +4,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "VTB Mortech Backend"
     debug: bool = False
+    # Generic DB URL (defaults to local SQLite for easy run)
+    database_url: str = "sqlite+aiosqlite:///./app.db"
     
-    # PostgreSQL (облако)
+    # Optional PostgreSQL settings (kept for compatibility if needed)
     postgres_host: str = "94.228.113.42"
     postgres_database: str = "default_db"
     postgres_user: str = "admin_1"

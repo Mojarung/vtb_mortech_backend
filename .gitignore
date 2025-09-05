@@ -1,3 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Virtualenv
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# DB and runtime
+app.db
+*.sqlite3
+*.log
+
+# Images / OCR temp
+tmp/
+cache/
+
 __pycache__/
 .env
 .venv/
