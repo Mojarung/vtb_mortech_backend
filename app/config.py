@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     
+    # Настройки базы данных (могут переопределяться переменными окружения)
     database_host: str = "94.228.113.42"
     database_name: str = "mortech"
     database_user: str = "admin_1"
@@ -15,5 +16,7 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        # Разрешаем переопределение переменными окружения
+        case_sensitive = False
 
 settings = Settings()
