@@ -37,10 +37,9 @@ class VacancyUpdate(BaseModel):
 
 class VacancyRead(VacancyBase):
     id: int
-    creator_id: int
-    location: Optional[str] = None
-    created_at: datetime
-    is_active: bool = True
+    hr_user_id: int
+    published_at: datetime
+    is_active: bool
 
     class Config:
         from_attributes = True

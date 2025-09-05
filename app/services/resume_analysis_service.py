@@ -4,17 +4,21 @@
 
 import asyncio
 import logging
+import os
 from typing import Dict, Any, Optional
 from datetime import datetime
 
 from app.services.ai_service import get_ai_service
-from app.services.pdf_service import PDFService
-from app.services.ocr_service import OCRService
+
 from app.models.vacancy import Vacancy, VacancyApplication
 from app.models.user import User
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import aiohttp
+
 logger = logging.getLogger(__name__)
+
+OCR_SERVICE_URL = os.getenv("OCR_SERVICE_URL", "http://localhost:8001")
 
 class ResumeAnalysisService:
     """Сервис для полного анализа резюме"""
@@ -30,26 +34,16 @@ class ResumeAnalysisService:
         Полный анализ заявки с резюме
         """
         try:
-            # 1. Извлекаем текст из PDF с помощью OCR
             resume_text = await ResumeAnalysisService._extract_text_with_ocr(application.resume_file_path)
             
             if not resume_text or len(resume_text.strip()) < 50:
                 logger.warning(f"Could not extract meaningful text from resume: {application.resume_file_path}")
                 return await ResumeAnalysisService._create_fallback_analysis(application, db)
             
-            # 2. Получаем AI сервис
             ai_service = get_ai_service()
-            
-            # 3. Формируем требования вакансии
             vacancy_requirements = ResumeAnalysisService._format_vacancy_requirements(vacancy)
-            
-            # 4. Анализируем резюме с помощью AI
             ai_analysis = await ai_service.analyze_resume(resume_text, vacancy_requirements)
-            
-            # 5. Извлекаем структурированные данные
             resume_data = await ai_service.extract_resume_data(resume_text)
-            
-            # 6. Обновляем заявку с результатами анализа
             await ResumeAnalysisService._update_application_with_analysis(
                 application, ai_analysis, resume_data, db
             )
@@ -68,41 +62,28 @@ class ResumeAnalysisService:
     @staticmethod
     async def _extract_text_with_ocr(pdf_path: str) -> str:
         """
-        Извлекает текст из PDF с помощью OCR сервиса
+        Извлекает текст из PDF с помощью OCR микросервиса
         """
         try:
-            # Сначала пробуем обычное извлечение текста
-            resume_text = PDFService.extract_text_from_pdf(pdf_path)
-            
-            if resume_text and len(resume_text.strip()) > 50:
-                logger.info("Successfully extracted text using PDF parsing")
-                return resume_text
-            
-            # Если обычное извлечение не сработало, используем OCR
-            logger.info("PDF parsing failed, trying OCR extraction")
-            
-            # Читаем файл
             with open(pdf_path, 'rb') as file:
                 pdf_content = file.read()
-            
-            # Используем OCR сервис
-            ocr_service = OCRService()
-            extracted_text, resume_data = await ocr_service.process_pdf(pdf_content, pdf_path)
-            
-            # Объединяем текст со всех страниц
-            full_text = "\n".join([page.text for page in extracted_text])
-            
-            if full_text and len(full_text.strip()) > 50:
-                logger.info("Successfully extracted text using OCR")
-                return full_text
-            else:
-                logger.warning("OCR extraction also failed")
-                return ""
-                
+            async with aiohttp.ClientSession() as session:
+                data = aiohttp.FormData()
+                data.add_field('file', pdf_content, filename=os.path.basename(pdf_path), content_type='application/pdf')
+                async with session.post(f"{OCR_SERVICE_URL}/ocr/process-pdf", data=data, timeout=300) as resp:
+                    if resp.status != 200:
+                        logger.error(f"OCR service error: {resp.status} {await resp.text()}")
+                        return ""
+                    payload = await resp.json()
+                    pages = payload.get('extracted_text', [])
+                    full_text = "\n".join([p.get('text', '') for p in pages])
+                    if full_text and len(full_text.strip()) > 50:
+                        logger.info("Successfully extracted text using OCR microservice")
+                        return full_text
+                    return ""
         except Exception as e:
-            logger.error(f"Error in OCR text extraction: {e}")
-            # Fallback к обычному извлечению
-            return PDFService.extract_text_from_pdf(pdf_path)
+            logger.error(f"Error in OCR microservice call: {e}")
+            return ""
     
     @staticmethod
     def _format_vacancy_requirements(vacancy: Vacancy) -> str:
@@ -135,16 +116,12 @@ class ResumeAnalysisService:
     ):
         """Обновляет заявку с результатами AI анализа"""
         try:
-            # Обновляем поля AI анализа
             application.ai_recommendation = ai_analysis.get('recommendation', 'Анализ недоступен')
             application.ai_match_percentage = ai_analysis.get('match_percentage', 50)
             application.ai_analysis_date = datetime.utcnow()
-            
-            # Добавляем детальный анализ в заметки
             detailed_analysis = ai_analysis.get('detailed_analysis', '')
             strengths = ai_analysis.get('strengths', [])
             weaknesses = ai_analysis.get('weaknesses', [])
-            
             analysis_notes = f"""
 AI АНАЛИЗ РЕЗЮМЕ:
 
@@ -166,12 +143,9 @@ AI АНАЛИЗ РЕЗЮМЕ:
 - Образование: {resume_data.get('education', 'Не указано')}
 - Навыки: {', '.join(resume_data.get('skills', []))}
 """
-            
             application.notes = analysis_notes
-            
             await db.commit()
             await db.refresh(application)
-            
         except Exception as e:
             logger.error(f"Error updating application with analysis: {e}")
             await db.rollback()
@@ -187,23 +161,12 @@ AI АНАЛИЗ РЕЗЮМЕ:
             application.ai_match_percentage = 50
             application.ai_analysis_date = datetime.utcnow()
             application.notes = "Автоматический анализ недоступен. Требуется ручная проверка резюме."
-            
             await db.commit()
             await db.refresh(application)
-            
-            return {
-                "success": False,
-                "error": "Could not analyze resume automatically",
-                "fallback": True
-            }
-            
+            return {"success": False, "error": "Could not analyze resume automatically", "fallback": True}
         except Exception as e:
             logger.error(f"Error creating fallback analysis: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "fallback": False
-            }
+            return {"success": False, "error": str(e), "fallback": False}
     
     @staticmethod
     async def batch_analyze_applications(
@@ -215,19 +178,15 @@ AI АНАЛИЗ РЕЗЮМЕ:
         """
         try:
             ai_service = get_ai_service()
-            
-            # Подготавливаем данные для пакетного анализа
             batch_data = []
             for app in applications:
                 if app.resume_file_path:
                     resume_text = await ResumeAnalysisService._extract_text_with_ocr(app.resume_file_path)
                     if resume_text and len(resume_text.strip()) > 50:
-                        # Получаем вакансию
                         vacancy_result = await db.execute(
                             "SELECT * FROM vacancies WHERE id = %s", (app.vacancy_id,)
                         )
                         vacancy = vacancy_result.fetchone()
-                        
                         if vacancy:
                             vacancy_requirements = ResumeAnalysisService._format_vacancy_requirements(vacancy)
                             batch_data.append({
@@ -235,19 +194,13 @@ AI АНАЛИЗ РЕЗЮМЕ:
                                 'resume_text': resume_text,
                                 'vacancy_requirements': vacancy_requirements
                             })
-            
             if not batch_data:
                 return {"success": False, "error": "No valid resumes found for batch analysis"}
-            
-            # Выполняем пакетный анализ
             results = await ai_service.batch_analyze_resumes(batch_data)
-            
-            # Обновляем заявки
             updated_count = 0
             for i, result in enumerate(results):
                 if i < len(batch_data):
                     app_id = batch_data[i]['application_id']
-                    # Находим заявку и обновляем
                     for app in applications:
                         if app.id == app_id:
                             await ResumeAnalysisService._update_application_with_analysis(
@@ -255,16 +208,7 @@ AI АНАЛИЗ РЕЗЮМЕ:
                             )
                             updated_count += 1
                             break
-            
-            return {
-                "success": True,
-                "processed_count": len(batch_data),
-                "updated_count": updated_count
-            }
-            
+            return {"success": True, "processed_count": len(batch_data), "updated_count": updated_count}
         except Exception as e:
             logger.error(f"Error in batch analysis: {e}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}

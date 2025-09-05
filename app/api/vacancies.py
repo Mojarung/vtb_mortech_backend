@@ -43,14 +43,13 @@ async def create_vacancy(
     db_vacancy = Vacancy(
         title=vacancy.title,
         company_name=vacancy.company_name,
-        location=vacancy.location,
         salary_min=vacancy.salary_min,
         salary_max=vacancy.salary_max,
         experience_years=vacancy.experience_years,
         requirements=vacancy.requirements,
         conditions=vacancy.conditions,
         about=vacancy.about,
-        creator_id=current_user.id
+        hr_user_id=current_user.id
     )
     
     db.add(db_vacancy)
@@ -75,7 +74,7 @@ async def get_vacancies(
         select(Vacancy)
         .offset(skip)
         .limit(limit)
-        .order_by(Vacancy.created_at.desc())
+        .order_by(Vacancy.published_at.desc())
     )
     
     vacancies = result.scalars().all()
@@ -122,7 +121,7 @@ async def update_vacancy(
         )
     
     # Проверяем права доступа
-    if current_user.id != vacancy.creator_id and not current_user.is_hr:
+    if current_user.id != vacancy.hr_user_id and not current_user.is_hr:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Вы можете редактировать только свои вакансии"
@@ -160,7 +159,7 @@ async def delete_vacancy(
         )
     
     # Проверяем права доступа
-    if current_user.id != vacancy.creator_id and not current_user.is_hr:
+    if current_user.id != vacancy.hr_user_id and not current_user.is_hr:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Вы можете удалять только свои вакансии"
@@ -261,8 +260,8 @@ async def get_my_vacancies(
     
     result = await db.execute(
         select(Vacancy)
-        .where(Vacancy.creator_id == current_user.id)
-        .order_by(Vacancy.created_at.desc())
+        .where(Vacancy.hr_user_id == current_user.id)
+        .order_by(Vacancy.published_at.desc())
     )
     
     vacancies = result.scalars().all()

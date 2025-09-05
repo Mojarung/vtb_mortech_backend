@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class PDFUploadRequest(BaseModel):
@@ -29,6 +29,18 @@ class ResumeData(BaseModel):
     languages: List[str] = Field(default_factory=list, description="Языки")
     summary: Optional[str] = Field(None, description="Краткое описание")
     raw_text: str = Field(..., description="Весь извлеченный текст")
+
+    @field_validator('skills', 'languages', mode='before')
+    @classmethod
+    def coerce_list(cls, v):
+        # Поддержка строк вида "Python, SQL" -> ["Python","SQL"]
+        if v is None:
+            return []
+        if isinstance(v, list):
+            return [str(i).strip() for i in v if str(i).strip()]
+        if isinstance(v, str):
+            return [s.strip() for s in v.split(',') if s.strip()]
+        return []
 
 
 class OCRResponse(BaseModel):

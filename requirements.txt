@@ -17,12 +17,3 @@ python-jose[cryptography]==3.3.0
 
 # AI Service (OpenRouter)
 aiohttp==3.9.1
-
-# PDF Processing & OCR
-PyPDF2==3.0.1
-pdfplumber==0.10.3
-pdf2image==1.17.0
-pytesseract==0.3.10
-Pillow==10.4.0
-opencv-python==4.9.0.80
-numpy==1.26.4
