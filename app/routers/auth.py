@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
-from app.schemas import UserCreate, UserLogin, UserResponse, Token
+from app.schemas import UserCreate, UserLogin, UserResponse, Token, UserProfileUpdate
 from app.auth import get_password_hash, verify_password, create_access_token, get_current_user
 from app.config import settings
 
@@ -79,3 +79,31 @@ def logout_user(response: Response):
         samesite="none"  # Для кросс-доменных запросов
     )
     return {"message": "Successfully logged out"}
+
+@router.put("/profile", response_model=UserResponse)
+def update_user_profile(
+    profile_update: UserProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Обновление профиля пользователя"""
+    # Обновляем только переданные поля
+    update_data = profile_update.dict(exclude_unset=True)
+    
+    for field, value in update_data.items():
+        setattr(current_user, field, value)
+    
+    # Обновляем full_name если изменились first_name или last_name
+    if 'first_name' in update_data or 'last_name' in update_data:
+        first_name = update_data.get('first_name', current_user.first_name)
+        last_name = update_data.get('last_name', current_user.last_name)
+        if first_name and last_name:
+            current_user.full_name = f"{first_name} {last_name}"
+        elif first_name:
+            current_user.full_name = first_name
+        elif last_name:
+            current_user.full_name = last_name
+    
+    db.commit()
+    db.refresh(current_user)
+    return current_user

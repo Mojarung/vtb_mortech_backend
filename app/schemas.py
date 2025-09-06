@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List, Dict, Any
-from datetime import datetime
-from app.models import UserRole, VacancyStatus, InterviewStatus, ApplicationStatus
+from datetime import datetime, date
+from app.models import UserRole, VacancyStatus, InterviewStatus, ApplicationStatus, EmploymentType
 
 class UserCreate(BaseModel):
     username: str
@@ -22,6 +22,19 @@ class UserResponse(BaseModel):
     full_name: Optional[str]
     is_active: bool
     created_at: datetime
+    # Profile fields
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    birth_date: Optional[date] = None
+    location: Optional[str] = None
+    about: Optional[str] = None
+    desired_salary: Optional[int] = None
+    ready_to_relocate: Optional[bool] = None
+    employment_type: Optional[EmploymentType] = None
+    education: Optional[List[Dict[str, Any]]] = None
+    skills: Optional[List[str]] = None
+    work_experience: Optional[List[Dict[str, Any]]] = None
 
     class Config:
         from_attributes = True
@@ -29,6 +42,20 @@ class UserResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class UserProfileUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    birth_date: Optional[date] = None
+    location: Optional[str] = None
+    about: Optional[str] = None
+    desired_salary: Optional[int] = None
+    ready_to_relocate: Optional[bool] = None
+    employment_type: Optional[EmploymentType] = None
+    education: Optional[List[Dict[str, Any]]] = None
+    skills: Optional[List[str]] = None
+    work_experience: Optional[List[Dict[str, Any]]] = None
 
 class VacancyCreate(BaseModel):
     title: str

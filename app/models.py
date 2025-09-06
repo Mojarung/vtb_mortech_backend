@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, JSON, Enum, Float
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, JSON, Enum, Float, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, date
 import enum
 
 Base = declarative_base()
@@ -9,6 +9,13 @@ Base = declarative_base()
 class UserRole(enum.Enum):
     HR = "hr"
     USER = "user"
+
+class EmploymentType(enum.Enum):
+    FULL_TIME = "full_time"
+    PART_TIME = "part_time"
+    CONTRACT = "contract"
+    FREELANCE = "freelance"
+    INTERNSHIP = "internship"
 
 class VacancyStatus(enum.Enum):
     OPEN = "open"
@@ -38,6 +45,20 @@ class User(Base):
     full_name = Column(String)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Profile fields
+    first_name = Column(String)
+    last_name = Column(String)
+    phone = Column(String)
+    birth_date = Column(Date)
+    location = Column(String)  # Место жительства
+    about = Column(Text)  # О себе
+    desired_salary = Column(Integer)  # Желаемая зарплата
+    ready_to_relocate = Column(Boolean, default=False)  # Готов к переезду
+    employment_type = Column(Enum(EmploymentType))  # Тип занятости
+    education = Column(JSON)  # Образование (массив объектов)
+    skills = Column(JSON)  # Навыки (массив строк)
+    work_experience = Column(JSON)  # Опыт работы (массив объектов)
     
     vacancies = relationship("Vacancy", back_populates="creator")
     resumes = relationship("Resume", back_populates="user")
