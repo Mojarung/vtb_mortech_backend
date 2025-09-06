@@ -22,12 +22,25 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
         )
     
     hashed_password = get_password_hash(user.password)
+    
+    # Автоматическое разделение full_name на first_name и last_name
+    first_name = None
+    last_name = None
+    if user.full_name:
+        name_parts = user.full_name.strip().split()
+        if len(name_parts) >= 1:
+            first_name = name_parts[0]
+        if len(name_parts) >= 2:
+            last_name = name_parts[1]
+    
     db_user = User(
         username=user.username,
         email=user.email,
         hashed_password=hashed_password,
         role=user.role,
-        full_name=user.full_name
+        full_name=user.full_name,
+        first_name=first_name,
+        last_name=last_name
     )
     db.add(db_user)
     db.commit()
