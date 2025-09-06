@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     upload_dir: str = "uploads"
     
     # Resume Analysis Service Configuration
-    agent_id: str = ""
+    agent_id: str = "7e7605da-7f02-4c74-8fa1-31c95dcbbab2"
     api_key: str = ""
     base_url: str = "https://agent.timeweb.cloud"
     

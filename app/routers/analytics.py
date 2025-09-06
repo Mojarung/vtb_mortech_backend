@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from app.database import get_db
-from app.models import User, Vacancy, Resume, Interview, ResumeAnalysis, InterviewStatus, UserRole
+from app.models import User, Vacancy, Resume, Interview, ResumeAnalysis, InterviewStatus, UserRole, ApplicationStatus
 from app.auth import get_current_user, get_current_hr_user
 from app.schemas import UserResponse
 from typing import Dict, Any
@@ -60,19 +60,19 @@ def get_candidate_stats(
         ).scalar() or 0
         
         return {
-            "total_interviews": total_interviews,
-            "completed_interviews": completed_interviews,
-            "scheduled_interviews": scheduled_interviews,
-            "average_score": round(avg_score, 1) if avg_score else 0
+            "totalInterviews": total_interviews,
+            "completedInterviews": completed_interviews,
+            "scheduledInterviews": scheduled_interviews,
+            "averageScore": round(avg_score, 1) if avg_score else 0
         }
     except Exception as e:
         print(f"Error in get_candidate_stats: {e}")
         # Возвращаем нулевые значения в случае ошибки
         return {
-            "total_interviews": 0,
-            "completed_interviews": 0,
-            "scheduled_interviews": 0,
-            "average_score": 0
+            "totalInterviews": 0,
+            "completedInterviews": 0,
+            "scheduledInterviews": 0,
+            "averageScore": 0
         }
 
 @router.get("/hr/stats")
@@ -83,46 +83,41 @@ def get_hr_stats(
     """Получение статистики для HR"""
     
     try:
-        # Общее количество кандидатов (уникальные пользователи с резюме)
-        total_candidates = db.query(func.count(func.distinct(Resume.user_id))).filter(
+        # Количество заявок на вакансии текущего HR (все заявки, не только уникальные кандидаты)
+        total_candidates = db.query(Resume).join(Vacancy).filter(
+            Vacancy.creator_id == current_user.id,
             Resume.user_id.isnot(None)
-        ).scalar() or 0
-        
-        # Общее количество интервью
-        total_interviews = db.query(Interview).count()
-        
-        # Успешные наймы (интервью с высоким процентом прохождения)
-        successful_hires = db.query(Interview).filter(
-            Interview.pass_percentage >= 80,
-            Interview.status == InterviewStatus.COMPLETED
         ).count()
         
-        # Ожидающие интервью
-        pending_interviews = db.query(Interview).filter(
-            Interview.status == InterviewStatus.NOT_STARTED
+        # Успешные наймы (принятые заявки)
+        successful_hires = db.query(Resume).join(Vacancy).filter(
+            Vacancy.creator_id == current_user.id,
+            Resume.status == ApplicationStatus.ACCEPTED
         ).count()
         
-        # Количество вакансий от текущего HR
-        hr_vacancies = db.query(Vacancy).filter(
-            Vacancy.creator_id == current_user.id
+        # Ожидающие заявки (новые заявки)
+        pending_applications = db.query(Resume).join(Vacancy).filter(
+            Vacancy.creator_id == current_user.id,
+            Resume.status == ApplicationStatus.PENDING
         ).count()
+        
+        # Общее количество интервью (пока заглушка)
+        total_interviews = 0
         
         return {
-            "total_candidates": total_candidates,
-            "total_interviews": total_interviews,
-            "successful_hires": successful_hires,
-            "pending_interviews": pending_interviews,
-            "hr_vacancies": hr_vacancies
+            "totalCandidates": total_candidates,
+            "totalInterviews": total_interviews,
+            "successfulHires": successful_hires,
+            "pending": pending_applications
         }
     except Exception as e:
         print(f"Error in get_hr_stats: {e}")
         # Возвращаем нулевые значения в случае ошибки
         return {
-            "total_candidates": 0,
-            "total_interviews": 0,
-            "successful_hires": 0,
-            "pending_interviews": 0,
-            "hr_vacancies": 0
+            "totalCandidates": 0,
+            "totalInterviews": 0,
+            "successfulHires": 0,
+            "pending": 0
         }
 
 @router.get("/candidate/recent-interviews")
@@ -184,13 +179,6 @@ def get_hr_recent_interviews(
     except Exception as e:
         return []
 
-@router.get("/hr/stats")
-def get_hr_stats_endpoint(
-    current_user: User = Depends(get_current_hr_user),
-    db: Session = Depends(get_db)
-):
-    """Получение статистики для HR (дублирует существующий роут)"""
-    return get_hr_stats(current_user, db)
 
 @router.get("/hr/interviews")
 def get_hr_interviews_endpoint(
@@ -205,24 +193,18 @@ def get_candidates(
     current_user: User = Depends(get_current_hr_user),
     db: Session = Depends(get_db)
 ):
-    """Получение списка кандидатов для HR"""
+    """Получение всех заявок для HR"""
     
     try:
-        # Получаем резюме на вакансии текущего HR
+        # Получаем ВСЕ резюме на вакансии текущего HR (не группируем)
         resumes_query = db.query(Resume).join(Vacancy).filter(
             Vacancy.creator_id == current_user.id
         ).order_by(desc(Resume.uploaded_at))
         
         resumes = resumes_query.all()
         
-        # Группируем по пользователям
-        candidates_dict = {}
-        for resume in resumes:
-            if resume.user_id not in candidates_dict:
-                candidates_dict[resume.user_id] = resume
-        
         result = []
-        for user_id, resume in candidates_dict.items():
+        for resume in resumes:
             candidate = resume.user
             
             # Получаем последнее интервью
@@ -232,15 +214,29 @@ def get_candidates(
                     Interview.resume_id == resume.id
                 ).order_by(desc(Interview.created_at)).first()
             
+            # Извлекаем рекомендацию из заметок
+            ai_recommendation = "Не проанализировано"
+            if resume.notes and "🤖 Рекомендация ИИ:" in resume.notes:
+                ai_part = resume.notes.split("🤖 Рекомендация ИИ:")[-1].strip()
+                if "Рекомендуется к интервью" in ai_part:
+                    ai_recommendation = "Да"
+                elif "Не рекомендуется" in ai_part:
+                    ai_recommendation = "Нет"
+                else:
+                    ai_recommendation = "Требует доработки"
+            
             result.append({
-                "id": str(candidate.id).zfill(5),  # Форматируем ID как в mock данных
-                "name": candidate.full_name or candidate.username,
-                "position": resume.vacancy.title if resume and resume.vacancy else "Не указана",
-                "address": candidate.location or "Не указан",
-                "date": resume.uploaded_at.strftime("%d %b %Y") if resume else candidate.created_at.strftime("%d %b %Y"),
+                "id": resume.id,
+                "candidate_name": candidate.full_name or candidate.username,
+                "position": resume.vacancy.title if resume.vacancy else "Не указана",
+                "date": resume.uploaded_at.strftime("%d %b %Y"),
                 "type": "Техническое",  # Можно добавить логику определения типа
-                "status": last_interview.status.value if last_interview else "Новое",
-                "statusColor": get_status_color(last_interview.status if last_interview else None)
+                "status": resume.status.value,
+                "statusColor": get_status_color_by_resume_status(resume.status),
+                "recommended": ai_recommendation,
+                "resume_url": resume.file_path if resume else None,
+                "vacancy_description": resume.vacancy.description if resume.vacancy else "Описание не найдено",
+                "ai_analysis": resume.notes if resume.notes else "Анализ не проведен"
             })
         
         return result
@@ -257,6 +253,20 @@ def get_status_color(status):
         InterviewStatus.COMPLETED: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
         InterviewStatus.IN_PROGRESS: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
         InterviewStatus.NOT_STARTED: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+    }
+    
+    return status_colors.get(status, "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200")
+
+def get_status_color_by_resume_status(status):
+    """Получение цвета статуса резюме"""
+    from app.models import ApplicationStatus
+    
+    status_colors = {
+        ApplicationStatus.PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+        ApplicationStatus.ACCEPTED: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+        ApplicationStatus.REJECTED: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+        ApplicationStatus.INTERVIEW_SCHEDULED: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+        ApplicationStatus.INTERVIEW_COMPLETED: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
     }
     
     return status_colors.get(status, "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200")

@@ -4,6 +4,11 @@ from app.routers import auth, vacancies, resumes, interviews, resume_analysis, a
 from app.database import create_tables
 from app.logging_config import logger, log_startup, log_request
 import time
+import os
+from dotenv import load_dotenv
+
+# Загружаем переменные окружения из .env файла
+load_dotenv()
 
 app = FastAPI(title="VTB HR Backend", version="1.0.0")
 

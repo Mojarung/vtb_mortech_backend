@@ -102,7 +102,11 @@ class ResumeAnalysisService:
   "technologies": ["технология1", "технология2"],
   "achievements": ["достижение1", "достижение2"],
   "structured": true,
-  "effort_level": "Высокий/Средний/Низкий"
+  "effort_level": "Высокий/Средний/Низкий",
+  "detailed_analysis": "Подробный анализ: почему именно такая рекомендация, что хорошо в резюме, что можно улучшить, соответствие требованиям вакансии",
+  "strengths": ["сильная сторона 1", "сильная сторона 2", "сильная сторона 3"],
+  "weaknesses": ["слабая сторона 1", "слабая сторона 2"],
+  "missing_skills": ["отсутствующий навык 1", "отсутствующий навык 2"]
 }}
 
 ВАЖНО: Отвечай ТОЛЬКО JSON, без дополнительного текста!
@@ -179,6 +183,12 @@ class ResumeAnalysisService:
             "resume_quality": {
                 "structured": ai_analysis.get("structured", False),
                 "effort_level": ai_analysis.get("effort_level", "Не определен")
+            },
+            "detailed_analysis": {
+                "analysis_text": ai_analysis.get("detailed_analysis", "Подробный анализ не проведен"),
+                "strengths": ai_analysis.get("strengths", []),
+                "weaknesses": ai_analysis.get("weaknesses", []),
+                "missing_skills": ai_analysis.get("missing_skills", [])
             },
             "anti_manipulation": {
                 "suspicious_phrases_found": is_suspicious,

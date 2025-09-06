@@ -28,7 +28,6 @@ class InterviewStatus(enum.Enum):
 
 class ApplicationStatus(enum.Enum):
     PENDING = "pending"  # На рассмотрении
-    REVIEWED = "reviewed"  # Просмотрено
     INTERVIEW_SCHEDULED = "interview_scheduled"  # Интервью назначено
     INTERVIEW_COMPLETED = "interview_completed"  # Интервью пройдено
     ACCEPTED = "accepted"  # Принято
@@ -75,7 +74,8 @@ class Vacancy(Base):
     location = Column(String)
     employment_type = Column(String)
     experience_level = Column(String)
-    benefits = Column(Text, nullable=True)  # Условия работы (через запятую)
+    benefits = Column(Text, nullable=True)
+    company = Column(String(255), nullable=True)  # Условия работы (через запятую)
     status = Column(Enum(VacancyStatus), default=VacancyStatus.OPEN)
     original_url = Column(String)
     creator_id = Column(Integer, ForeignKey("users.id"))
