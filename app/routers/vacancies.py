@@ -76,10 +76,8 @@ def get_formatted_vacancies(
                 "description": vacancy.description,
                 "requirements": requirements,
                 "benefits": ["ДМС", "Обучение", "Гибкий график"],  # Можно добавить поле в модель
-                "rating": 4.5,  # Можно добавить поле в модель
                 "applicants": 0,  # Можно подсчитать из заявок
-                "postedDate": vacancy.created_at.strftime("%Y-%m-%d"),
-                "deadline": (vacancy.created_at + timedelta(days=30)).strftime("%Y-%m-%d")  # Можно добавить поле в модель
+                "postedDate": vacancy.created_at.strftime("%Y-%m-%d")
             })
         
         return result
