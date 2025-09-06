@@ -66,6 +66,7 @@ class VacancyCreate(BaseModel):
     location: Optional[str] = None
     employment_type: Optional[str] = None
     experience_level: Optional[str] = None
+    benefits: Optional[str] = None  # Условия работы (через запятую)
     status: VacancyStatus = VacancyStatus.OPEN
     original_url: Optional[str] = None
 
@@ -78,6 +79,7 @@ class VacancyUpdate(BaseModel):
     location: Optional[str] = None
     employment_type: Optional[str] = None
     experience_level: Optional[str] = None
+    benefits: Optional[str] = None  # Условия работы (через запятую)
     status: Optional[VacancyStatus] = None
     original_url: Optional[str] = None
 
@@ -91,6 +93,7 @@ class VacancyResponse(BaseModel):
     location: Optional[str]
     employment_type: Optional[str]
     experience_level: Optional[str]
+    benefits: Optional[str]  # Условия работы (через запятую)
     status: VacancyStatus
     original_url: Optional[str]
     creator_id: int

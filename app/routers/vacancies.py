@@ -64,6 +64,13 @@ def get_formatted_vacancies(
             if vacancy.requirements:
                 requirements = [req.strip() for req in vacancy.requirements.split(',') if req.strip()]
             
+            # Форматируем условия
+            benefits = []
+            if vacancy.benefits:
+                benefits = [benefit.strip() for benefit in vacancy.benefits.split(',') if benefit.strip()]
+            else:
+                benefits = ["ДМС", "Обучение", "Гибкий график"]  # Дефолтные условия
+            
             result.append({
                 "id": vacancy.id,
                 "title": vacancy.title,
@@ -75,7 +82,7 @@ def get_formatted_vacancies(
                 "schedule": "Полный день",  # Можно добавить поле в модель
                 "description": vacancy.description,
                 "requirements": requirements,
-                "benefits": ["ДМС", "Обучение", "Гибкий график"],  # Можно добавить поле в модель
+                "benefits": benefits,
                 "applicants": 0,  # Можно подсчитать из заявок
                 "postedDate": vacancy.created_at.strftime("%Y-%m-%d")
             })

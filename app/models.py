@@ -75,6 +75,7 @@ class Vacancy(Base):
     location = Column(String)
     employment_type = Column(String)
     experience_level = Column(String)
+    benefits = Column(Text, nullable=True)  # Условия работы (через запятую)
     status = Column(Enum(VacancyStatus), default=VacancyStatus.OPEN)
     original_url = Column(String)
     creator_id = Column(Integer, ForeignKey("users.id"))

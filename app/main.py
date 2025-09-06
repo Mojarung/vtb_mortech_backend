@@ -4,11 +4,6 @@ from app.routers import auth, vacancies, resumes, interviews, resume_analysis, a
 from app.database import create_tables
 from app.logging_config import logger, log_startup, log_request
 import time
-from dotenv import load_dotenv
-import os
-
-# Загружаем переменные окружения из .env файла
-load_dotenv()
 
 app = FastAPI(title="VTB HR Backend", version="1.0.0")
 
@@ -28,12 +23,14 @@ async def log_requests(request: Request, call_next):
     
     return response
 
-# Production CORS настройки
+# CORS настройки для продакшна
+allowed_origins = [
+    "https://mojarung-vtb-mortech-frontend-9b15.twc1.net",  # Продакшн
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://mojarung-vtb-mortech-frontend-9b15.twc1.net",
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

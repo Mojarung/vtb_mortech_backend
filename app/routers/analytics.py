@@ -184,6 +184,22 @@ def get_hr_recent_interviews(
     except Exception as e:
         return []
 
+@router.get("/hr/stats")
+def get_hr_stats_endpoint(
+    current_user: User = Depends(get_current_hr_user),
+    db: Session = Depends(get_db)
+):
+    """Получение статистики для HR (дублирует существующий роут)"""
+    return get_hr_stats(current_user, db)
+
+@router.get("/hr/interviews")
+def get_hr_interviews_endpoint(
+    current_user: User = Depends(get_current_hr_user),
+    db: Session = Depends(get_db)
+):
+    """Получение интервью для HR (дублирует существующий роут)"""
+    return get_hr_recent_interviews(current_user, db)
+
 @router.get("/candidates")
 def get_candidates(
     current_user: User = Depends(get_current_hr_user),
@@ -192,29 +208,36 @@ def get_candidates(
     """Получение списка кандидатов для HR"""
     
     try:
-        # Получаем всех пользователей с ролью 'user' (кандидаты)
-        candidates = db.query(User).filter(User.role == UserRole.USER).all()
+        # Получаем резюме на вакансии текущего HR
+        resumes_query = db.query(Resume).join(Vacancy).filter(
+            Vacancy.creator_id == current_user.id
+        ).order_by(desc(Resume.uploaded_at))
+        
+        resumes = resumes_query.all()
+        
+        # Группируем по пользователям
+        candidates_dict = {}
+        for resume in resumes:
+            if resume.user_id not in candidates_dict:
+                candidates_dict[resume.user_id] = resume
         
         result = []
-        for candidate in candidates:
-            # Получаем последнее резюме кандидата
-            last_resume = db.query(Resume).filter(
-                Resume.user_id == candidate.id
-            ).order_by(desc(Resume.uploaded_at)).first()
+        for user_id, resume in candidates_dict.items():
+            candidate = resume.user
             
             # Получаем последнее интервью
             last_interview = None
-            if last_resume:
+            if resume:
                 last_interview = db.query(Interview).filter(
-                    Interview.resume_id == last_resume.id
+                    Interview.resume_id == resume.id
                 ).order_by(desc(Interview.created_at)).first()
             
             result.append({
                 "id": str(candidate.id).zfill(5),  # Форматируем ID как в mock данных
                 "name": candidate.full_name or candidate.username,
-                "position": last_resume.vacancy.title if last_resume and last_resume.vacancy else "Не указана",
+                "position": resume.vacancy.title if resume and resume.vacancy else "Не указана",
                 "address": candidate.location or "Не указан",
-                "date": last_resume.uploaded_at.strftime("%d %b %Y") if last_resume else candidate.created_at.strftime("%d %b %Y"),
+                "date": resume.uploaded_at.strftime("%d %b %Y") if resume else candidate.created_at.strftime("%d %b %Y"),
                 "type": "Техническое",  # Можно добавить логику определения типа
                 "status": last_interview.status.value if last_interview else "Новое",
                 "statusColor": get_status_color(last_interview.status if last_interview else None)
