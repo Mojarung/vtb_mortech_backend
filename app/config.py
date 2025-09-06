@@ -20,8 +20,7 @@ class Settings(BaseSettings):
     base_url: str = "https://agent.timeweb.cloud"
     
     class Config:
-        env_file = ".env"
-        # Разрешаем переопределение переменными окружения
+        # Убираем зависимость от .env файла - используем только переменные окружения
         case_sensitive = False
 
 settings = Settings()

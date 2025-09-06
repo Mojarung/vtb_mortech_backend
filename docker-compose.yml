@@ -12,7 +12,8 @@ services:
       - DATABASE_PASSWORD=jopabobra
       - SECRET_KEY=your-secret-key-here-change-in-production
       - ALGORITHM=HS256
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - UPLOAD_DIR=uploads
       - AGENT_ID=7e7605da-7f02-4c74-8fa1-31c95dcbbab2
       - API_KEY=your_api_key_here
       - BASE_URL=https://agent.timeweb.cloud
