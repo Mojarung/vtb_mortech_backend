@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from app.database import get_db
-from app.models import User, Vacancy, Resume, Interview, ResumeAnalysis, InterviewStatus
+from app.models import User, Vacancy, Resume, Interview, ResumeAnalysis, InterviewStatus, UserRole
 from app.auth import get_current_user, get_current_hr_user
 from app.schemas import UserResponse
 from typing import Dict, Any
@@ -183,3 +183,57 @@ def get_hr_recent_interviews(
         return result
     except Exception as e:
         return []
+
+@router.get("/candidates")
+def get_candidates(
+    current_user: User = Depends(get_current_hr_user),
+    db: Session = Depends(get_db)
+):
+    """Получение списка кандидатов для HR"""
+    
+    try:
+        # Получаем всех пользователей с ролью 'user' (кандидаты)
+        candidates = db.query(User).filter(User.role == UserRole.USER).all()
+        
+        result = []
+        for candidate in candidates:
+            # Получаем последнее резюме кандидата
+            last_resume = db.query(Resume).filter(
+                Resume.user_id == candidate.id
+            ).order_by(desc(Resume.uploaded_at)).first()
+            
+            # Получаем последнее интервью
+            last_interview = None
+            if last_resume:
+                last_interview = db.query(Interview).filter(
+                    Interview.resume_id == last_resume.id
+                ).order_by(desc(Interview.created_at)).first()
+            
+            result.append({
+                "id": str(candidate.id).zfill(5),  # Форматируем ID как в mock данных
+                "name": candidate.full_name or candidate.username,
+                "position": last_resume.vacancy.title if last_resume and last_resume.vacancy else "Не указана",
+                "address": candidate.location or "Не указан",
+                "date": last_resume.uploaded_at.strftime("%d %b %Y") if last_resume else candidate.created_at.strftime("%d %b %Y"),
+                "type": "Техническое",  # Можно добавить логику определения типа
+                "status": last_interview.status.value if last_interview else "Новое",
+                "statusColor": get_status_color(last_interview.status if last_interview else None)
+            })
+        
+        return result
+    except Exception as e:
+        print(f"Error in get_candidates: {e}")
+        return []
+
+def get_status_color(status):
+    """Получение цвета статуса"""
+    if not status:
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+    
+    status_colors = {
+        InterviewStatus.COMPLETED: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+        InterviewStatus.IN_PROGRESS: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+        InterviewStatus.NOT_STARTED: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+    }
+    
+    return status_colors.get(status, "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200")
