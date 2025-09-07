@@ -39,7 +39,7 @@ class ResumeAnalysisService:
         }
         
         try:
-            response = requests.post(url, headers=headers, data=json.dumps(payload))
+            response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=20)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as http_err:
@@ -121,18 +121,17 @@ class ResumeAnalysisService:
 ВАЖНО: Отвечай ТОЛЬКО JSON, без дополнительного текста!
 """
 
-        # Получаем ответ от AI (перенос блокирующего запроса в отдельный поток)
+        # Безопасный вызов AI с защитой от исключений
         import asyncio as _asyncio
-        ai_response = await _asyncio.to_thread(self.call_gpt5_nano, prompt)
-        
         try:
+            ai_response = await _asyncio.to_thread(self.call_gpt5_nano, prompt)
             # Извлекаем содержимое ответа
             message_content = ai_response.get('message', '{}')
             
             # Если ответ в формате строки JSON, парсим его
             if isinstance(message_content, str):
-                # Пытаемся найти JSON в ответе
-                json_match = re.search(r'\{.*\}', message_content, re.DOTALL)
+                # Пытаемся найти JSON в ответе (даже если есть лишний текст/код-блоки)
+                json_match = re.search(r'\{[\s\S]*\}', message_content)
                 if json_match:
                     json_str = json_match.group()
                     analysis_data = json.loads(json_str)
@@ -141,10 +140,10 @@ class ResumeAnalysisService:
                     analysis_data = json.loads(message_content)
             else:
                 analysis_data = message_content
-                
+            
             return analysis_data
-        except (json.JSONDecodeError, AttributeError, KeyError) as e:
-            # В случае ошибки парсинга возвращаем базовый результат
+        except Exception:
+            # Возвращаем минимальный валидный ответ, чтобы верхний уровень сформировал результат
             return {
                 "name": None,
                 "position": "Не определена",
@@ -158,7 +157,11 @@ class ResumeAnalysisService:
                 "technologies": [],
                 "achievements": [],
                 "structured": False,
-                "effort_level": "Не определен"
+                "effort_level": "Не определен",
+                "detailed_analysis": "Подробный анализ не проведен",
+                "strengths": [],
+                "weaknesses": [],
+                "missing_skills": []
             }
     
     async def analyze_resume(self, job_description: str, resume_text: str) -> Dict[str, Any]:
