@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from app.database import get_db
-from app.models import Vacancy, User, VacancyStatus
+from app.models import Vacancy, User, VacancyStatus, Resume
 from app.schemas import VacancyCreate, VacancyUpdate, VacancyResponse
 from app.auth import get_current_user, get_current_hr_user
 
@@ -70,11 +70,18 @@ def get_formatted_vacancies(
                 benefits = [benefit.strip() for benefit in vacancy.benefits.split(',') if benefit.strip()]
             else:
                 benefits = ["ДМС", "Обучение", "Гибкий график"]  # Дефолтные условия
+
+            # Количество заявок
+            applicants_count = 0
+            try:
+                applicants_count = vacancy.resumes and len(vacancy.resumes) or 0
+            except Exception:
+                applicants_count = 0
             
             result.append({
                 "id": vacancy.id,
                 "title": vacancy.title,
-                "company": vacancy.creator.full_name or vacancy.creator.username,
+                "company": (vacancy.company or (vacancy.creator.full_name or vacancy.creator.username)),
                 "location": vacancy.location or "Не указана",
                 "salary": salary,
                 "experience": vacancy.experience_level or "Не указан",
@@ -83,7 +90,7 @@ def get_formatted_vacancies(
                 "description": vacancy.description,
                 "requirements": requirements,
                 "benefits": benefits,
-                "applicants": 0,  # Можно подсчитать из заявок
+                "applicants": applicants_count,
                 "postedDate": vacancy.created_at.strftime("%Y-%m-%d")
             })
         
