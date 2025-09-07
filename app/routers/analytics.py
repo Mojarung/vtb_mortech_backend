@@ -196,9 +196,10 @@ def get_candidates(
     """Получение всех заявок для HR"""
     
     try:
-        # Получаем ВСЕ резюме на вакансии текущего HR (не группируем)
+        # Получаем ТОЛЬКО обработанные резюме на вакансии текущего HR
         resumes_query = db.query(Resume).join(Vacancy).filter(
-            Vacancy.creator_id == current_user.id
+            Vacancy.creator_id == current_user.id,
+            Resume.processed.is_(True)
         ).order_by(desc(Resume.uploaded_at))
         
         resumes = resumes_query.all()
@@ -207,34 +208,39 @@ def get_candidates(
         for resume in resumes:
             candidate = resume.user
             
-            # Получаем последнее интервью
-            last_interview = None
-            if resume:
-                last_interview = db.query(Interview).filter(
-                    Interview.resume_id == resume.id
-                ).order_by(desc(Interview.created_at)).first()
-            
-            # Извлекаем рекомендацию из заметок
+            # Извлекаем рекомендацию из заметок. Приоритет: структурная метка
             ai_recommendation = "Не проанализировано"
-            if resume.notes and "🤖 Рекомендация ИИ:" in resume.notes:
-                ai_part = resume.notes.split("🤖 Рекомендация ИИ:")[-1].strip()
-                if "Рекомендуется к интервью" in ai_part:
-                    ai_recommendation = "Да"
-                elif "Не рекомендуется" in ai_part:
-                    ai_recommendation = "Нет"
-                else:
-                    ai_recommendation = "Требует доработки"
+            if resume.notes:
+                if "РЕКОМЕНДАЦИЯ_СТРУКТУРА:" in resume.notes:
+                    rec = resume.notes.split("РЕКОМЕНДАЦИЯ_СТРУКТУРА:")[-1].strip()
+                    if "Рекомендуется" in rec:
+                        ai_recommendation = "Да"
+                    elif "Не рекомендуется" in rec:
+                        ai_recommendation = "Нет"
+                    else:
+                        ai_recommendation = "Требует доработки"
+                elif "🤖 Рекомендация ИИ:" in resume.notes:
+                    ai_part = resume.notes.split("🤖 Рекомендация ИИ:")[-1].strip()
+                    if "Рекомендуется" in ai_part:
+                        ai_recommendation = "Да"
+                    elif "Не рекомендуется" in ai_part:
+                        ai_recommendation = "Нет"
+                    else:
+                        ai_recommendation = "Требует доработки"
+            
+            # Ссылка на скачивание файла (через API)
+            download_path = f"/resumes/{resume.id}/download"
             
             result.append({
                 "id": resume.id,
                 "candidate_name": candidate.full_name or candidate.username,
                 "position": resume.vacancy.title if resume.vacancy else "Не указана",
                 "date": resume.uploaded_at.strftime("%d %b %Y"),
-                "type": "Техническое",  # Можно добавить логику определения типа
+                "type": "Техническое",
                 "status": resume.status.value,
                 "statusColor": get_status_color_by_resume_status(resume.status),
                 "recommended": ai_recommendation,
-                "resume_url": resume.file_path if resume else None,
+                "resume_url": download_path,
                 "vacancy_description": resume.vacancy.description if resume.vacancy else "Описание не найдено",
                 "ai_analysis": resume.notes if resume.notes else "Анализ не проведен"
             })
