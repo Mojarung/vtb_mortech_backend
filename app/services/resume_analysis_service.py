@@ -114,10 +114,9 @@ class ResumeAnalysisService:
             "ВАЖНО: Отвечай ТОЛЬКО JSON, без дополнительного текста!\n"
         )
 
-        # Безопасный вызов AI с защитой от исключений
-        import asyncio as _asyncio
+        # Прямой вызов AI (внутри текущей корутины)
         try:
-            ai_response = await _asyncio.to_thread(self.call_gpt5_nano, prompt)
+            ai_response = self.call_gpt5_nano(prompt)
             # Извлекаем содержимое ответа
             message_content = ai_response.get('message', '{}')
             
