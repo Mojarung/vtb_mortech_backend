@@ -78,10 +78,17 @@ def get_formatted_vacancies(
             except Exception:
                 applicants_count = 0
             
+            # Компания: игнорируем плейсхолдеры типа "string"
+            company_value = (vacancy.company or "").strip()
+            if not company_value or company_value.lower() == "string":
+                company_display = vacancy.creator.full_name or vacancy.creator.username
+            else:
+                company_display = company_value
+
             result.append({
                 "id": vacancy.id,
                 "title": vacancy.title,
-                "company": (vacancy.company or (vacancy.creator.full_name or vacancy.creator.username)),
+                "company": company_display,
                 "location": vacancy.location or "Не указана",
                 "salary": salary,
                 "experience": vacancy.experience_level or "Не указан",
