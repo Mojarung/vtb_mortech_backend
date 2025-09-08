@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from app.database import get_db
-from app.models import User, Vacancy, Resume, ApplicationStatus
+from app.models import User, Vacancy, Resume, ApplicationStatus, ProcessingStatus
 from app.auth import get_current_user, get_current_hr_user
 from app.schemas import ResumeResponse
+from app.services.async_resume_processor import async_resume_processor
 from datetime import datetime
 import os
 import shutil
@@ -18,6 +19,7 @@ async def apply_for_vacancy(
     vacancy_id: int,
     file: UploadFile = File(...),
     cover_letter: Optional[str] = Form(None),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -75,15 +77,19 @@ async def apply_for_vacancy(
         file_path=file_path,
         original_filename=file.filename,
         status=ApplicationStatus.PENDING,
-        notes=cover_letter
+        notes=cover_letter,
+        processing_status=ProcessingStatus.PENDING
     )
     
     db.add(db_resume)
     db.commit()
     db.refresh(db_resume)
     
-    # Запускаем обработку OCR и нейронки в фоне
-    asyncio.create_task(process_resume_with_ocr(db_resume.id, file_path, vacancy.description))
+    # Запускаем асинхронную обработку через BackgroundTasks
+    background_tasks.add_task(
+        async_resume_processor.process_resume_async, 
+        db_resume.id
+    )
     
     return db_resume
 
@@ -97,16 +103,83 @@ def get_my_applications(
         Resume.user_id == current_user.id
     ).order_by(Resume.uploaded_at.desc()).all()
 
+
+@router.get("/status/{resume_id}")
+async def get_application_status(
+    resume_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Проверяет статус обработки заявки
+    """
+    try:
+        resume = db.query(Resume).filter(
+            Resume.id == resume_id,
+            Resume.user_id == current_user.id
+        ).first()
+        
+        if not resume:
+            raise HTTPException(status_code=404, detail="Заявка не найдена")
+        
+        result = {
+            "resume_id": resume_id,
+            "processing_status": resume.processing_status.value,
+            "processed": resume.processed,
+            "application_status": resume.status.value,
+            "uploaded_at": resume.uploaded_at.isoformat() if resume.uploaded_at else None,
+            "vacancy_title": resume.vacancy.title if resume.vacancy else None
+        }
+        
+        # Если обработка завершена, добавляем результат анализа
+        if resume.processed and resume.analysis:
+            analysis = resume.analysis
+            result["analysis"] = {
+                "name": analysis.name,
+                "position": analysis.position,
+                "experience": analysis.experience,
+                "education": analysis.education,
+                "match_score": analysis.match_score,
+                "key_skills": analysis.key_skills,
+                "recommendation": analysis.recommendation,
+                "projects": analysis.projects,
+                "work_experience": analysis.work_experience,
+                "technologies": analysis.technologies,
+                "achievements": analysis.achievements,
+                "structured": analysis.structured,
+                "effort_level": analysis.effort_level,
+                "suspicious_phrases_found": analysis.suspicious_phrases_found,
+                "suspicious_examples": analysis.suspicious_examples
+            }
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Ошибка в get_application_status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Ошибка получения статуса: {str(e)}")
+
 @router.get("/all", response_model=List[ResumeResponse])
 def get_all_applications(
     status_filter: Optional[str] = None,
     vacancy_id: Optional[int] = None,
+    processed: Optional[bool] = True,  # По умолчанию только обработанные
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_hr_user)
 ):
-    """Получение всех заявок для HR"""
-    query = db.query(Resume).join(User).join(Vacancy)
+    """Получение всех заявок для HR с расширенной фильтрацией и загрузкой связей"""
+    query = db.query(Resume).options(
+        joinedload(Resume.user),      # Загрузка пользователя
+        joinedload(Resume.vacancy),   # Загрузка вакансии
+        joinedload(Resume.analysis)   # Загрузка анализа
+    )
     
+    # Фильтр по статусу обработки
+    if processed is not None:
+        query = query.filter(Resume.processed == processed)
+    
+    # Фильтр по статусу заявки
     if status_filter:
         try:
             status_enum = ApplicationStatus(status_filter)
@@ -117,10 +190,14 @@ def get_all_applications(
                 detail="Неверный статус заявки"
             )
     
+    # Фильтр по вакансии
     if vacancy_id:
         query = query.filter(Resume.vacancy_id == vacancy_id)
     
-    return query.order_by(Resume.uploaded_at.desc()).all()
+    # Сортировка по дате загрузки (последние сверху)
+    query = query.order_by(Resume.uploaded_at.desc())
+    
+    return query.all()
 
 @router.get("/{application_id}", response_model=ResumeResponse)
 def get_application_details(

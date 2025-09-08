@@ -98,7 +98,9 @@ def get_formatted_vacancies(
                 "requirements": requirements,
                 "benefits": benefits,
                 "applicants": applicants_count,
-                "postedDate": vacancy.created_at.strftime("%Y-%m-%d")
+                "postedDate": vacancy.created_at.strftime("%Y-%m-%d"),
+                "creator_id": vacancy.creator_id,
+                "created_at": vacancy.created_at.isoformat()
             })
         
         return result

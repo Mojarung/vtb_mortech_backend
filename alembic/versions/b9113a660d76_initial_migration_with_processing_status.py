@@ -1,8 +1,8 @@
-"""Initial migration with applications
+"""initial_migration_with_processing_status
 
-Revision ID: 558e1eebdccd
-Revises: 53a3fe5d92ba
-Create Date: 2025-09-05 21:46:57.218474
+Revision ID: b9113a660d76
+Revises: 
+Create Date: 2025-09-08 00:30:56.995363
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '558e1eebdccd'
-down_revision: Union[str, Sequence[str], None] = '53a3fe5d92ba'
+revision: str = 'b9113a660d76'
+down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -30,6 +30,18 @@ def upgrade() -> None:
     sa.Column('full_name', sa.String(), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('first_name', sa.String(), nullable=True),
+    sa.Column('last_name', sa.String(), nullable=True),
+    sa.Column('phone', sa.String(), nullable=True),
+    sa.Column('birth_date', sa.Date(), nullable=True),
+    sa.Column('location', sa.String(), nullable=True),
+    sa.Column('about', sa.Text(), nullable=True),
+    sa.Column('desired_salary', sa.Integer(), nullable=True),
+    sa.Column('ready_to_relocate', sa.Boolean(), nullable=True),
+    sa.Column('employment_type', sa.Enum('FULL_TIME', 'PART_TIME', 'CONTRACT', 'FREELANCE', 'INTERNSHIP', name='employmenttype'), nullable=True),
+    sa.Column('education', sa.JSON(), nullable=True),
+    sa.Column('skills', sa.JSON(), nullable=True),
+    sa.Column('work_experience', sa.JSON(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
@@ -45,6 +57,8 @@ def upgrade() -> None:
     sa.Column('location', sa.String(), nullable=True),
     sa.Column('employment_type', sa.String(), nullable=True),
     sa.Column('experience_level', sa.String(), nullable=True),
+    sa.Column('benefits', sa.Text(), nullable=True),
+    sa.Column('company', sa.String(length=255), nullable=True),
     sa.Column('status', sa.Enum('OPEN', 'CLOSED', name='vacancystatus'), nullable=True),
     sa.Column('original_url', sa.String(), nullable=True),
     sa.Column('creator_id', sa.Integer(), nullable=True),
@@ -63,7 +77,8 @@ def upgrade() -> None:
     sa.Column('uploaded_at', sa.DateTime(), nullable=True),
     sa.Column('processed', sa.Boolean(), nullable=True),
     sa.Column('uploaded_by_hr', sa.Boolean(), nullable=True),
-    sa.Column('status', sa.Enum('PENDING', 'REVIEWED', 'INTERVIEW_SCHEDULED', 'INTERVIEW_COMPLETED', 'ACCEPTED', 'REJECTED', name='applicationstatus'), nullable=True),
+    sa.Column('status', sa.Enum('PENDING', 'INTERVIEW_SCHEDULED', 'INTERVIEW_COMPLETED', 'ACCEPTED', 'REJECTED', name='applicationstatus'), nullable=True),
+    sa.Column('processing_status', sa.Enum('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', name='processingstatus'), nullable=True),
     sa.Column('notes', sa.Text(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),

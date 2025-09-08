@@ -6,13 +6,36 @@ from app.logging_config import logger, log_startup, log_request
 import time
 import os
 from dotenv import load_dotenv
+import logging
 
 # Загружаем переменные окружения из .env файла
 load_dotenv()
 
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title="VTB HR Backend", version="1.0.0")
 
-# Middleware для логирования запросов
+# Универсальная CORS-конфигурация для локальной разработки
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # Next.js frontend local
+        "http://127.0.0.1:3000", # Next.js frontend local
+        "https://mojarung-vtb-mortech-frontend-9b15.twc1.net", # Next.js frontend production
+        "http://localhost:8000",  # Backend local
+        "http://127.0.0.1:8000",  # Backend local
+        "http://localhost", # Localhost testing
+        "http://127.0.0.1", # Localhost testing
+        "https://mojarung-vtb-mortech-backend-ef3c.twc1.net" # Backend production (for Swagger UI if needed)
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Логирование запросов
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start_time = time.time()
@@ -27,20 +50,6 @@ async def log_requests(request: Request, call_next):
     logger.info(f"RESPONSE: {request.method} {request.url.path} - Status: {response.status_code} - Time: {process_time:.4f}s")
     
     return response
-
-# CORS настройки для продакшна
-allowed_origins = [
-    "https://mojarung-vtb-mortech-frontend-9b15.twc1.net",  # Продакшн
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
-    expose_headers=["Set-Cookie", "Authorization"]
-)
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(vacancies.router, prefix="/vacancies", tags=["vacancies"])
@@ -57,6 +66,12 @@ async def startup_event():
         log_startup("Проверяем подключение к базе данных...")
         create_tables()
         log_startup("Таблицы созданы успешно!")
+        
+        # Запускаем фоновую очередь для обработки резюме
+        from app.services.job_queue import start_job_workers_and_recover
+        start_job_workers_and_recover()
+        log_startup("Фоновая очередь обработки резюме запущена!")
+        
         log_startup("VTB HR Backend готов к работе!")
     except Exception as e:
         logger.error(f"STARTUP ERROR: {str(e)}")

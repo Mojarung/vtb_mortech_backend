@@ -1,51 +1,61 @@
 """
-Сервис для анализа резюме с использованием GPT-5 Nano через agent.timeweb.cloud
+Сервис для анализа резюме с использованием Open Router AI
 """
 
-import requests
 import json
 import re
+import httpx
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-from app.config import settings
 
 class ResumeAnalysisService:
-    """Сервис для анализа резюме"""
+    """Сервис для анализа резюме через Open Router"""
     
     def __init__(self):
-        self.agent_id = settings.agent_id
-        self.api_key = settings.api_key
-        self.base_url = settings.base_url
-        
-        # Проверяем наличие переменных окружения, но не падаем
-        self.is_configured = bool(self.agent_id and self.api_key)
-        if not self.is_configured:
-            print("WARNING: AGENT_ID и API_KEY не установлены. Сервис будет работать в тестовом режиме.")
+        self.api_key = "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"
+        self.base_url = "https://openrouter.ai/api/v1/chat/completions"
     
-    def call_gpt5_nano(self, prompt: str) -> Dict[str, Any]:
+    async def call_open_router_ai(self, prompt: str) -> Dict[str, Any]:
         """
-        Отправляет запрос к GPT-5 Nano через API agent.timeweb.cloud
+        Отправляет запрос к Open Router AI
         """
-        url = f"{self.base_url}/api/v1/cloud-ai/agents/{self.agent_id}/call"
-        
         headers = {
-            'Authorization': f"Bearer {self.api_key}",
-            'Content-Type': "application/json"
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://vtb-mortech.ai',  # Рекомендуется указывать
+            'X-Title': 'VTB Resume Analysis'
         }
         
         payload = {
-            "message": prompt,
-            "parent_message_id": ""
+            "model": "deepseek/deepseek-r1:free",  # Более современная модель Claude
+            "messages": [
+                {"role": "system", "content": "Ты профессиональный HR-аналитик. Анализируй резюме максимально точно и объективно."},
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": 6000
         }
         
-        try:
-            response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=20)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.HTTPError as http_err:
-            raise Exception(f"HTTP error occurred: {http_err}")
-        except Exception as err:
-            raise Exception(f"API error occurred: {err}")
+        print(f"🔍 Open Router Request URL: {self.base_url}")
+        print(f"🔍 Open Router Headers: {headers}")
+        print(f"🔍 Open Router Payload: {payload}")
+        
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            try:
+                response = await client.post(self.base_url, headers=headers, json=payload)
+                print(f"🔍 Open Router Response Status: {response.status_code}")
+                print(f"🔍 Open Router Response Headers: {response.headers}")
+                print(f"🔍 Open Router Response Body: {response.text}")
+                
+                response.raise_for_status()
+                result = response.json()
+                return result['choices'][0]['message']['content']
+            except httpx.HTTPStatusError as e:
+                print(f"❌ HTTP Status Error: {e}")
+                print(f"❌ Response Text: {e.response.text}")
+                raise
+            except Exception as e:
+                print(f"❌ Open Router API Error: {e}")
+                raise
     
     def check_anti_manipulation(self, resume_text: str) -> tuple[bool, List[str]]:
         """
@@ -75,10 +85,9 @@ class ResumeAnalysisService:
     
     async def analyze_resume_with_ai(self, job_description: str, resume_text: str) -> Dict[str, Any]:
         """
-        Основная функция анализа резюме с использованием GPT-5 Nano
+        Основная функция анализа резюме с использованием Open Router AI
         """
         
-        # Создаем детальный промпт для анализа (строго учитываем ТОЛЬКО реальный опыт занятости)
         prompt = (
             "Проанализируй резюме кандидата относительно вакансии и верни результат СТРОГО в JSON формате без дополнительного текста.\n\n"
             "КРИТИЧЕСКИЕ ПРАВИЛА ОЦЕНКИ ОПЫТА:\n"
@@ -86,7 +95,8 @@ class ResumeAnalysisService:
             "- НЕ считать за опыт: хакатоны, соревнования, олимпиады, курсы, буткэмпы, учебные/пет-проекты, волонтерство, стажировки без трудовых обязанностей, кружки, студпроекты.\n"
             "- Фриланс учитывать ТОЛЬКО если явно указаны длительные коммерческие проекты с обязанностями, компаниями/заказчиками и длительностью.\n"
             "- Если в тексте завышаются/размываются формулировки опыта — снижать итоговый балл соответствия.\n"
-            "- Если нет реального опыта, выставляй опыт \"0 лет\" и рекомендацию консервативно.\n\n"
+            "- Если нет реального опыта, выставляй опыт \"0 лет\".\n"
+            "- ВАЖНО: если в описании вакансии явно указано, что требуется 0 лет опыта, либо позиция \"junior/стажер\" — НЕ штрафуй кандидата за отсутствие коммерческого опыта. Оцени по навыкам, образованию и релевантности.\n\n"
             f"**ВАКАНСИЯ:**\n{job_description}\n\n"
             f"**РЕЗЮМЕ:**\n{resume_text}\n\n"
             "Верни результат в следующем JSON формате:\n"
@@ -95,9 +105,9 @@ class ResumeAnalysisService:
             "  \"position\": \"Позиция из вакансии\",\n"
             "  \"experience\": \"Опыт в годах с учетом ТОЛЬКО реальной занятости (например: '3 года' или '0 лет')\",\n"
             "  \"education\": \"Образование кандидата\",\n"
-            "  \"match_score\": \"Процент соответствия (например: '85%'). Наказание за отсутствие реального опыта обязательно.\",\n"
+            "  \"match_score\": \"Процент соответствия (например: '85%'). Если вакансия допускает 0 лет опыта, не штрафуй за отсутствие опыта.\",\n"
             "  \"key_skills\": [\"навык1\", \"навык2\", \"навык3\"],\n"
-            "  \"recommendation\": \"Рекомендация (Рекомендуется к интервью/Не рекомендуется/Требует доработки). Будь строже при отсутствии реального опыта.\",\n"
+            "  \"recommendation\": \"Рекомендация (Рекомендуется к интервью/Не рекомендуется/Требует доработки). Если вакансия 0 лет опыта — оцени без штрафа.\",\n"
             "  \"projects\": [\"проект1\", \"проект2\"],\n"
             "  \"work_experience\": [\n"
             "    \"Опиши ТОЛЬКО реальную занятость: Компания, роль, период, обязанности\"\n"
@@ -114,27 +124,20 @@ class ResumeAnalysisService:
             "ВАЖНО: Отвечай ТОЛЬКО JSON, без дополнительного текста!\n"
         )
 
-        # Безопасный вызов AI с защитой от исключений
-        import asyncio as _asyncio
         try:
-            ai_response = await _asyncio.to_thread(self.call_gpt5_nano, prompt)
-            # Извлекаем содержимое ответа
-            message_content = ai_response.get('message', '{}')
+            ai_response = await self.call_open_router_ai(prompt)
             
-            # Если ответ в формате строки JSON, парсим его (даже если есть лишний текст/код-блоки)
-            if isinstance(message_content, str):
-                json_match = re.search(r'\{[\s\S]*\}', message_content)
-                if json_match:
-                    json_str = json_match.group()
-                    analysis_data = json.loads(json_str)
-                else:
-                    analysis_data = json.loads(message_content)
+            # Извлекаем JSON из ответа
+            json_match = re.search(r'\{[\s\S]*\}', ai_response)
+            if json_match:
+                json_str = json_match.group()
+                analysis_data = json.loads(json_str)
             else:
-                analysis_data = message_content
+                analysis_data = json.loads(ai_response)
             
             return analysis_data
-        except Exception:
-            # Возвращаем минимальный валидный ответ, чтобы верхний уровень сформировал результат
+        except Exception as e:
+            print(f"Ошибка анализа резюме: {e}")
             return {
                 "name": None,
                 "position": "Не определена",

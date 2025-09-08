@@ -33,6 +33,12 @@ class ApplicationStatus(enum.Enum):
     ACCEPTED = "accepted"  # Принято
     REJECTED = "rejected"  # Отклонено
 
+class ProcessingStatus(enum.Enum):
+    PENDING = "pending"  # Ожидает обработки
+    PROCESSING = "processing"  # В процессе обработки
+    COMPLETED = "completed"  # Обработка завершена
+    FAILED = "failed"  # Ошибка обработки
+
 class User(Base):
     __tablename__ = "users"
     
@@ -98,6 +104,7 @@ class Resume(Base):
     processed = Column(Boolean, default=False)
     uploaded_by_hr = Column(Boolean, default=False)
     status = Column(Enum(ApplicationStatus), default=ApplicationStatus.PENDING)
+    processing_status = Column(Enum(ProcessingStatus), default=ProcessingStatus.PENDING)
     notes = Column(Text)  # Заметки HR
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -125,6 +132,12 @@ class ResumeAnalysis(Base):
     work_experience = Column(JSON)
     technologies = Column(JSON)
     achievements = Column(JSON)
+    
+    # Новые поля для стабильно отображаемого анализа
+    strengths = Column(JSON)  # Сильные стороны (массив строк)
+    weaknesses = Column(JSON)  # Слабые стороны (массив строк)
+    missing_skills = Column(JSON)  # Отсутствующие навыки (массив строк)
+    brief_reason = Column(Text)  # Краткое объяснение вердикта
     
     structured = Column(Boolean)
     effort_level = Column(String)
