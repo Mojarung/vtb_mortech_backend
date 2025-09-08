@@ -87,9 +87,9 @@ def logout_user(response: Response):
     response.delete_cookie(
         key="access_token", 
         path="/",
-        domain=None,
-        secure=False,  # False для localhost HTTP
-        samesite="lax"  # Для localhost
+        domain=".twc1.net",
+        secure=True,
+        samesite="None"
     )
     return {"message": "Successfully logged out"}
 
