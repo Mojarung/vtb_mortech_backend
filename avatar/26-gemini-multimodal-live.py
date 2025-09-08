@@ -19,7 +19,6 @@ from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.services.gemini_multimodal_live.gemini import GeminiMultimodalLiveLLMService
 from pipecat.transports.base_transport import BaseTransport, TransportParams
-from pipecat.transports.services.daily import DailyParams
 from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketParams
 from pipecat.transcriptions.language import Language
 from simli import SimliConfig
@@ -38,13 +37,6 @@ logger.add(
 # instantiated. The function will be called when the desired transport gets
 # selected.
 transport_params = {
-    "daily": lambda: DailyParams(
-        audio_in_enabled=True,
-        audio_out_enabled=True,
-        # set stop_secs to something roughly similar to the internal setting
-        # of the Multimodal Live api, just to align events.
-        vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=0.5)),
-    ),
     "twilio": lambda: FastAPIWebsocketParams(
         audio_in_enabled=True,
         audio_out_enabled=True,
