@@ -337,23 +337,21 @@ async def process_resume_with_ocr(resume_id: int, file_path: str, job_descriptio
         print(f"✅ OCR извлек текст: {len(ocr_text)} символов")
         
         # 2. Отправляем в нейронку для анализа
-        ai_result = await analyze_resume_with_ai(ocr_text, job_description)
-        if not ai_result:
+        ai_recommendation = await analyze_resume_with_ai(ocr_text, job_description)
+        if not ai_recommendation:
             print(f"❌ Нейронка не смогла проанализировать резюме {resume_id}")
             return
         
-        print(f"✅ Нейронка проанализировала резюме: получена рекомендация '{ai_result.get('recommendation')}'")
+        print(f"✅ Нейронка проанализировала резюме: {ai_recommendation}")
         
-        # 3. Обновляем статус заявки и помечаем как обработанную
+        # 3. Обновляем статус заявки на "обработано"
         from app.database import SessionLocal
         db = SessionLocal()
         try:
             resume = db.query(Resume).filter(Resume.id == resume_id).first()
             if resume:
                 resume.status = ApplicationStatus.PENDING
-                resume.processed = True
-                # Сохраняем полный текст анализа, плюс явную строку с рекомендацией
-                resume.notes = f"{ai_result['text']}\n\nРЕКОМЕНДАЦИЯ_СТРУКТУРА: {ai_result.get('recommendation', '')}".strip()
+                resume.notes = f"{resume.notes or ''}\n\n🤖 Рекомендация ИИ: {ai_recommendation}".strip()
                 db.commit()
                 print(f"✅ Заявка {resume_id} обновлена и готова для HR")
         finally:
@@ -384,7 +382,7 @@ async def extract_text_with_ocr(file_path: str) -> Optional[str]:
         print(f"❌ Ошибка при обращении к OCR сервису: {e}")
         return None
 
-async def analyze_resume_with_ai(resume_text: str, job_description: str) -> Optional[dict]:
+async def analyze_resume_with_ai(resume_text: str, job_description: str) -> Optional[str]:
     """Анализ резюме через нейронку"""
     try:
         # Импортируем сервис анализа резюме
@@ -429,12 +427,9 @@ async def analyze_resume_with_ai(resume_text: str, job_description: str) -> Opti
 🛡️ ПРОВЕРКА НА МАНИПУЛЯЦИИ:
 {analysis_result.get('anti_manipulation', {}).get('suspicious_phrases_found', False) and '⚠️ Обнаружены подозрительные фразы' or '✅ Резюме выглядит честно'}
 """
-            return {
-                "text": analysis_text.strip(),
-                "recommendation": basic_info.get('recommendation', 'Требует дополнительного анализа')
-            }
+            return analysis_text.strip()
         else:
-            return None
+            return "Анализ не удался"
             
     except Exception as e:
         print(f"❌ Ошибка при анализе резюме нейронкой: {e}")
