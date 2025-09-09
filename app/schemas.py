@@ -120,6 +120,7 @@ class ResumeResponse(BaseModel):
     updated_at: datetime
     user: Optional[UserResponse] = None
     vacancy: Optional[VacancyResponse] = None
+    hidden_for_hr: Optional[bool] = False
 
     class Config:
         from_attributes = True

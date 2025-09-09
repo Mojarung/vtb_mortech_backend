@@ -107,6 +107,7 @@ class Resume(Base):
     processing_status = Column(Enum(ProcessingStatus), default=ProcessingStatus.PENDING)
     notes = Column(Text)  # Заметки HR
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    hidden_for_hr = Column(Boolean, default=False)  # Soft-delete для отображения у HR
     
     user = relationship("User", back_populates="resumes")
     vacancy = relationship("Vacancy", back_populates="resumes")
