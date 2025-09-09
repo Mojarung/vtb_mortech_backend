@@ -194,6 +194,9 @@ def get_all_applications(
     if vacancy_id:
         query = query.filter(Resume.vacancy_id == vacancy_id)
     
+    # Скрываем soft-deleted для HR
+    query = query.filter(Resume.hidden_for_hr == False)
+
     # Сортировка по дате загрузки (последние сверху)
     query = query.order_by(Resume.uploaded_at.desc())
     
@@ -270,7 +273,12 @@ def delete_application(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Удаление заявки"""
+    """Удаление заявки
+
+    Для HR выполняется мягкое удаление: заявка скрывается из их списка,
+    но остаётся в базе, чтобы кандидат не мог подать повторно.
+    Для владельца-кандидата — прежнее поведение с физическим удалением.
+    """
     application = db.query(Resume).filter(Resume.id == application_id).first()
     
     if not application:
@@ -279,23 +287,29 @@ def delete_application(
             detail="Заявка не найдена"
         )
     
-    # Проверяем права доступа
+    # Для HR: soft delete
+    if current_user.role.value == "hr":
+        application.hidden_for_hr = True
+        db.commit()
+        return {"message": "Заявка скрыта для HR"}
+
+    # Для кандидата: только свою заявку и полное удаление
     if current_user.role.value == "user" and application.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Нет доступа к этой заявке"
         )
-    
-    # Удаляем файл
+
+    # Удаляем файл и запись
     try:
         if os.path.exists(application.file_path):
             os.remove(application.file_path)
     except Exception as e:
         print(f"Ошибка при удалении файла: {e}")
-    
+
     db.delete(application)
     db.commit()
-    
+
     return {"message": "Заявка удалена"}
 
 @router.get("/stats/summary")
