@@ -1,6 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models import Interview, Resume, Vacancy, User
 from app.schemas import InterviewCreate, InterviewUpdate, InterviewResponse
@@ -57,7 +57,10 @@ def get_interviews(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_hr_user)
 ):
-    return db.query(Interview).offset(skip).limit(limit).all()
+    return db.query(Interview).options(
+        joinedload(Interview.resume).joinedload(Resume.user),
+        joinedload(Interview.vacancy)
+    ).offset(skip).limit(limit).all()
 
 @router.get("/vacancy/{vacancy_id}", response_model=List[InterviewResponse])
 def get_interviews_by_vacancy(
@@ -72,7 +75,10 @@ def get_interviews_by_vacancy(
             detail="Vacancy not found"
         )
     
-    return db.query(Interview).filter(Interview.vacancy_id == vacancy_id).all()
+    return db.query(Interview).options(
+        joinedload(Interview.resume).joinedload(Resume.user),
+        joinedload(Interview.vacancy)
+    ).filter(Interview.vacancy_id == vacancy_id).all()
 
 @router.get("/{interview_id}", response_model=InterviewResponse)
 def get_interview(
@@ -80,7 +86,10 @@ def get_interview(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    interview = db.query(Interview).filter(Interview.id == interview_id).first()
+    interview = db.query(Interview).options(
+        joinedload(Interview.resume).joinedload(Resume.user),
+        joinedload(Interview.vacancy)
+    ).filter(Interview.id == interview_id).first()
     if not interview:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -88,8 +97,7 @@ def get_interview(
         )
     
     if current_user.role.value != "hr":
-        resume = db.query(Resume).filter(Resume.id == interview.resume_id).first()
-        if not resume or resume.user_id != current_user.id:
+        if not interview.resume or interview.resume.user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not enough permissions"

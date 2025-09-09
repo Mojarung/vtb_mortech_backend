@@ -185,6 +185,9 @@ class InterviewResponse(BaseModel):
     notes: Optional[str]
     created_at: datetime
     updated_at: datetime
+    # Связанные данные
+    vacancy: Optional[VacancyResponse] = None
+    resume: Optional[ResumeResponse] = None
 
     class Config:
         from_attributes = True

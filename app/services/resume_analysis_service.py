@@ -12,7 +12,7 @@ class ResumeAnalysisService:
     """Сервис для анализа резюме через Open Router"""
     
     def __init__(self):
-        self.api_key = "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"
+        self.api_key = "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"
         self.base_url = "https://openrouter.ai/api/v1/chat/completions"
     
     async def call_open_router_ai(self, prompt: str) -> Dict[str, Any]:
