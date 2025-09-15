@@ -1,5 +1,5 @@
 """
-Сервис для анализа резюме с использованием Open Router AI
+Сервис для анализа резюме с поддержкой провайдеров OpenRouter и Heroku AI (OpenAI-совместимый Chat Completions)
 """
 
 import json
@@ -8,53 +8,93 @@ import httpx
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
+from app.config import settings
+
+
 class ResumeAnalysisService:
-    """Сервис для анализа резюме через Open Router"""
-    
+    """Сервис для анализа резюме через выбранного AI-провайдера"""
+
     def __init__(self):
-        self.api_key = "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"
-        self.base_url = "https://openrouter.ai/api/v1/chat/completions"
-    
-    async def call_open_router_ai(self, prompt: str) -> Dict[str, Any]:
-        """
-        Отправляет запрос к Open Router AI
-        """
+        # Конфиг читаем из settings
+        self.provider = (settings.ai_provider or "openrouter").lower()
+
+    def _build_request(self, prompt: str) -> tuple[str, Dict[str, str], Dict[str, Any]]:
+        """Собирает URL, заголовки и payload под выбранного провайдера."""
+        system_prompt = (
+            "Ты профессиональный HR-аналитик. Анализируй резюме максимально точно и объективно."
+        )
+
+        if self.provider == "heroku":
+            # Heroku AI Inference (OpenAI-совместимый)
+            url = settings.heroku_ai_base_url or ""
+            api_key = settings.heroku_ai_api_key or ""
+            model = settings.heroku_ai_model or "gpt-4o-mini"
+
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            }
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt},
+                ],
+                "max_tokens": 6000,
+            }
+            return url, headers, payload
+
+        # По умолчанию — OpenRouter
+        url = settings.openrouter_base_url or "https://openrouter.ai/api/v1/chat/completions"
+        api_key = settings.openrouter_api_key or ""
+        model = settings.openrouter_model or "deepseek/deepseek-r1:free"
+
         headers = {
-            'Authorization': f'Bearer {self.api_key}',
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://vtb-mortech.ai',  # Рекомендуется указывать
-            'X-Title': 'VTB Resume Analysis'
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
         }
-        
+        # Необязательные рекомендованные заголовки OpenRouter
+        http_referer = settings.base_url or None
+        if http_referer:
+            headers["HTTP-Referer"] = http_referer
+        headers["X-Title"] = "VTB Resume Analysis"
+
         payload = {
-            "model": "deepseek/deepseek-r1:free",  # Более современная модель Claude
+            "model": model,
             "messages": [
-                {"role": "system", "content": "Ты профессиональный HR-аналитик. Анализируй резюме максимально точно и объективно."},
-                {"role": "user", "content": prompt}
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
             ],
-            "max_tokens": 6000
+            "max_tokens": 6000,
         }
-        
-        print(f"🔍 Open Router Request URL: {self.base_url}")
-        print(f"🔍 Open Router Headers: {headers}")
-        print(f"🔍 Open Router Payload: {payload}")
-        
+        return url, headers, payload
+
+    async def call_ai(self, prompt: str) -> str:
+        """Вызывает AI API и возвращает контент ассистента (строка)."""
+        url, headers, payload = self._build_request(prompt)
+
+        print(f"🔍 AI Provider: {self.provider}")
+        print(f"🔍 Request URL: {url}")
+        print(f"🔍 Request Headers (masked auth): {{k: ('***' if k.lower()=='authorization' else v) for k,v in headers.items()}}")
+        print(f"🔍 Request Payload: {payload}")
+
         async with httpx.AsyncClient(timeout=120.0) as client:
             try:
-                response = await client.post(self.base_url, headers=headers, json=payload)
-                print(f"🔍 Open Router Response Status: {response.status_code}")
-                print(f"🔍 Open Router Response Headers: {response.headers}")
-                print(f"🔍 Open Router Response Body: {response.text}")
-                
+                response = await client.post(url, headers=headers, json=payload)
+                print(f"🔍 Response Status: {response.status_code}")
+                print(f"🔍 Response Headers: {response.headers}")
+                print(f"🔍 Response Body: {response.text}")
+
                 response.raise_for_status()
-                result = response.json()
-                return result['choices'][0]['message']['content']
+                data = response.json()
+                # Ожидаем OpenAI-совместимый формат
+                return data["choices"][0]["message"]["content"]
             except httpx.HTTPStatusError as e:
                 print(f"❌ HTTP Status Error: {e}")
                 print(f"❌ Response Text: {e.response.text}")
                 raise
             except Exception as e:
-                print(f"❌ Open Router API Error: {e}")
+                print(f"❌ AI Provider API Error: {e}")
                 raise
     
     def check_anti_manipulation(self, resume_text: str) -> tuple[bool, List[str]]:
@@ -125,7 +165,7 @@ class ResumeAnalysisService:
         )
 
         try:
-            ai_response = await self.call_open_router_ai(prompt)
+            ai_response = await self.call_ai(prompt)
             
             # Извлекаем JSON из ответа
             json_match = re.search(r'\{[\s\S]*\}', ai_response)
