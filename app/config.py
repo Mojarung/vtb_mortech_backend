@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=None, case_sensitive=False)
 
     # Безопасные значения по умолчанию оставлены, секреты и внешние адреса — только из окружения
-    secret_key: str = Field(..., validation_alias="SECRET_KEY", description="JWT secret key")
+    secret_key: str = Field("your-secret-key-here-change-in-production", validation_alias="SECRET_KEY", description="JWT secret key")
     algorithm: str = Field("HS256", validation_alias="ALGORITHM")
     access_token_expire_minutes: int = Field(60, validation_alias="ACCESS_TOKEN_EXPIRE_MINUTES")
 
