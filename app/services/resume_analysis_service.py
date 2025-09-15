@@ -24,36 +24,15 @@ class ResumeAnalysisService:
             "Ты профессиональный HR-аналитик. Анализируй резюме максимально точно и объективно."
         )
 
-        if self.provider == "heroku":
-            # Heroku AI Inference (OpenAI-совместимый)
-            url = settings.heroku_ai_base_url or ""
-            api_key = settings.heroku_ai_api_key or ""
-            model = settings.heroku_ai_model or "gpt-4o-mini"
-
-            headers = {
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            }
-            payload = {
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt},
-                ],
-                "max_tokens": 6000,
-            }
-            return url, headers, payload
+        # Heroku AI Inference (OpenAI-совместимый)
+        url = settings.heroku_ai_base_url or ""
+        api_key = settings.heroku_ai_api_key or ""
+        model = settings.heroku_ai_model or "gpt-4o-mini"
 
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
-        # Необязательные рекомендованные заголовки OpenRouter
-        http_referer = settings.base_url or None
-        if http_referer:
-            headers["HTTP-Referer"] = http_referer
-        headers["X-Title"] = "VTB Resume Analysis"
-
         payload = {
             "model": model,
             "messages": [

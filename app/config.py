@@ -26,12 +26,12 @@ class Settings(BaseSettings):
 
     # Конфигурация AI-провайдера для анализа резюме
     # Доступные значения: "openrouter", "heroku" (через совместимый Chat Completions API)
-    ai_provider: str | None = Field(None, validation_alias="AI_PROVIDER")
+    # ai_provider: str | None = Field(None, validation_alias="AI_PROVIDER")
 
     # OpenRouter
-    openrouter_api_key: str | None = Field(None, validation_alias="OPENROUTER_API_KEY")
-    openrouter_base_url: str | None = Field("https://openrouter.ai/api/v1/chat/completions", validation_alias="OPENROUTER_BASE_URL")
-    openrouter_model: str | None = Field("deepseek/deepseek-r1:free", validation_alias="OPENROUTER_MODEL")
+    # openrouter_api_key: str | None = Field(None, validation_alias="OPENROUTER_API_KEY")
+    # openrouter_base_url: str | None = Field("https://openrouter.ai/api/v1/chat/completions", validation_alias="OPENROUTER_BASE_URL")
+    # openrouter_model: str | None = Field("deepseek/deepseek-r1:free", validation_alias="OPENROUTER_MODEL")
 
     # Heroku AI Inference (OpenAI-совместимый Chat Completions)
     heroku_ai_api_key: str | None = Field(None, validation_alias="INFERENCE_KEY")
