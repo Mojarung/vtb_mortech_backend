@@ -44,11 +44,6 @@ class ResumeAnalysisService:
             }
             return url, headers, payload
 
-        # По умолчанию — OpenRouter
-        url = settings.openrouter_base_url or "https://openrouter.ai/api/v1/chat/completions"
-        api_key = settings.openrouter_api_key or ""
-        model = settings.openrouter_model or "deepseek/deepseek-r1:free"
-
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
