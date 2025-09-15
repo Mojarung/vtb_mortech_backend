@@ -16,7 +16,7 @@ class ResumeAnalysisService:
 
     def __init__(self):
         # Конфиг читаем из settings
-        self.provider = (settings.ai_provider or "openrouter").lower()
+        self.provider = ("heroku").lower()
 
     def _build_request(self, prompt: str) -> tuple[str, Dict[str, str], Dict[str, Any]]:
         """Собирает URL, заголовки и payload под выбранного провайдера."""
