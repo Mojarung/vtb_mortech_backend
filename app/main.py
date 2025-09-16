@@ -23,12 +23,12 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",  # Next.js frontend local
         "http://127.0.0.1:3000", # Next.js frontend local
-        "https://mojarung-vtb-mortech-frontend-9b15.twc1.net", # Next.js frontend production
+        "https://moretech-frontend-bb9dc4246c9f.herokuapp.com", # Next.js frontend production
         "http://localhost:8000",  # Backend local
         "http://127.0.0.1:8000",  # Backend local
         "http://localhost", # Localhost testing
         "http://127.0.0.1", # Localhost testing
-        "https://mojarung-vtb-mortech-backend-ef3c.twc1.net" # Backend production (for Swagger UI if needed)
+        "https://moretech-backend-80a7fa1a3fab.herokuapp.com/" # Backend production (for Swagger UI if needed)
     ],
     allow_credentials=True,
     allow_methods=["*"],
