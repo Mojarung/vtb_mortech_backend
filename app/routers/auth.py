@@ -72,7 +72,7 @@ def login_user(user_credentials: UserLogin, response: Response, db: Session = De
         secure=True,  # Требует HTTPS в production
         samesite="None",  # Для кросс-доменных запросов
         path="/",
-        domain=".twc1.net"  # Устанавливаем родительский домен для куки
+        domain=".herokuapp.com"  # Устанавливаем родительский домен для куки
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
