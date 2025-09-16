@@ -38,5 +38,12 @@ class Settings(BaseSettings):
     heroku_ai_base_url: str | None = Field(None, validation_alias="INFERENCE_URL")
     heroku_ai_model: str | None = Field(None, validation_alias="INFERENCE_MODEL_ID")
 
+    # S3 (AWS-совместимое) хранилище
+    s3_bucket: str | None = Field(None, validation_alias="S3_BUCKET")
+    s3_region: str | None = Field(None, validation_alias="AWS_REGION")
+    s3_endpoint_url: str | None = Field(None, validation_alias="S3_ENDPOINT_URL")  # для совместимых провайдеров
+    aws_access_key_id: str | None = Field(None, validation_alias="AWS_ACCESS_KEY_ID")
+    aws_secret_access_key: str | None = Field(None, validation_alias="AWS_SECRET_ACCESS_KEY")
+
 
 settings = Settings()

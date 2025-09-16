@@ -112,29 +112,40 @@ class AsyncResumeProcessor:
             db.close()
     
     async def extract_text_with_ocr(self, file_path: str) -> Optional[str]:
-        """Извлечение текста через OCR с расширенной обработкой ошибок"""
+        """Извлечение текста через OCR с поддержкой S3 и расширенной обработкой ошибок"""
         try:
             ocr_url = "https://mojarung-vtb-mortech-ocr-1103.twc1.net/ocr/process-file"
-            
+
+            # Подготовим bytes и имя файла
+            filename = os.path.basename(file_path)
+            file_bytes: Optional[bytes] = None
+            if file_path.startswith("s3://"):
+                from app.services.storage_s3 import get_s3_storage
+                s3 = get_s3_storage()
+                _, key = s3.parse_s3_uri(file_path)
+                file_bytes = s3.get_object_bytes(key)
+            else:
+                with open(file_path, "rb") as f:
+                    file_bytes = f.read()
+
             async with httpx.AsyncClient(timeout=60.0) as client:
-                with open(file_path, "rb") as file:
-                    files = {"file": (os.path.basename(file_path), file, "application/octet-stream")}
-                    response = await client.post(ocr_url, files=files)
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        extracted_text = result.get("text", "")
-                        
-                        # Дополнительная валидация текста
-                        if len(extracted_text) < 50:  # Слишком короткий текст
-                            logger.warning(f"⚠️ Извлечен слишком короткий текст: {len(extracted_text)} символов")
-                            return None
-                        
-                        return extracted_text
-                    else:
-                        logger.error(f"❌ OCR сервис вернул ошибку: {response.status_code} - {response.text}")
+                files = {"file": (filename, file_bytes, "application/octet-stream")}
+                response = await client.post(ocr_url, files=files)
+
+                if response.status_code == 200:
+                    result = response.json()
+                    extracted_text = result.get("text", "")
+
+                    # Дополнительная валидация текста
+                    if len(extracted_text) < 50:  # Слишком короткий текст
+                        logger.warning(f"⚠️ Извлечен слишком короткий текст: {len(extracted_text)} символов")
                         return None
-        
+
+                    return extracted_text
+                else:
+                    logger.error(f"❌ OCR сервис вернул ошибку: {response.status_code} - {response.text}")
+                    return None
+
         except Exception as e:
             logger.error(f"❌ Критическая ошибка OCR: {e}")
             return None
