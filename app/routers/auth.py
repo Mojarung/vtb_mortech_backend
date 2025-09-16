@@ -71,8 +71,7 @@ def login_user(user_credentials: UserLogin, response: Response, db: Session = De
         httponly=True,
         secure=True,  # Требует HTTPS в production
         samesite="None",  # Для кросс-доменных запросов
-        path="/",
-        domain=".herokuapp.com"  # Устанавливаем родительский домен для куки
+        path="/"
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
@@ -87,7 +86,6 @@ def logout_user(response: Response):
     response.delete_cookie(
         key="access_token", 
         path="/",
-        domain=".twc1.net",
         secure=True,
         samesite="None"
     )
