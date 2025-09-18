@@ -88,9 +88,12 @@ class Vacancy(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    
     creator = relationship("User", back_populates="vacancies")
     resumes = relationship("Resume", back_populates="vacancy")
     interviews = relationship("Interview", back_populates="vacancy")
+    auto_interview_enabled = Column(Boolean, default=False)
+
     auto_interview_enabled = Column(Boolean, default=False)
 
 class Resume(Base):
