@@ -11,26 +11,16 @@ from contextlib import asynccontextmanager
 from typing import Dict
 
 import uvicorn
-from bot import run_bot
-from dotenv import load_dotenv
+from services.bot import run_bot
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.responses import RedirectResponse
-from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from pipecat.transports.smallwebrtc.connection import IceServer, SmallWebRTCConnection
-from pipecat_ai_small_webrtc_prebuilt.frontend import SmallWebRTCPrebuiltUI
+from fastapi import APIRouter
 
-# Load environment variables
-load_dotenv(override=True)
 
-app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+router = APIRouter()
+
 # Store connections by pc_id
 pcs_map: Dict[str, SmallWebRTCConnection] = {}
 
@@ -40,16 +30,12 @@ ice_servers = [
     )
 ]
 
-# Mount the frontend at /
-app.mount("/prebuilt", SmallWebRTCPrebuiltUI)
-
-
-@app.get("/", include_in_schema=False)
+@router.get("/", include_in_schema=False)
 async def root_redirect():
     return RedirectResponse(url="/prebuilt/")
 
 
-@app.post("/api/offer")
+@router.post("/api/offer")
 async def offer(request: dict, background_tasks: BackgroundTasks):
     pc_id = request.get("pc_id")
     logger.info(f"rofl_answer: {request.get("rofl")}")
@@ -75,13 +61,6 @@ async def offer(request: dict, background_tasks: BackgroundTasks):
     pcs_map[answer["pc_id"]] = pipecat_connection
 
     return answer
-
-    answer = pipecat_connection.get_answer()
-    # Updating the peer connection inside the map
-    pcs_map[answer["pc_id"]] = pipecat_connection
-
-    return answer
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

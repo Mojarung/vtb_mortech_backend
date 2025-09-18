@@ -66,11 +66,12 @@ class VacancyCreate(BaseModel):
     location: Optional[str] = None
     employment_type: Optional[str] = None
     experience_level: Optional[str] = None
-    benefits: Optional[str] = None  # Условия работы (через запятую)
+    benefits: Optional[str] = None
     company: Optional[str] = None
     status: VacancyStatus = VacancyStatus.OPEN
     original_url: Optional[str] = None
-    auto_interview_enabled: Optional[bool] = False
+    hr_id: int
+    auto_interview_enabled: bool = False
     auto_interview_threshold: Optional[int] = 70
 
 class VacancyUpdate(BaseModel):
@@ -104,6 +105,8 @@ class VacancyResponse(BaseModel):
     status: VacancyStatus
     original_url: Optional[str]
     creator_id: int
+    hr_id: int
+    auto_interview_enabled: bool
     created_at: datetime
     updated_at: datetime
     auto_interview_enabled: bool
@@ -127,6 +130,8 @@ class ResumeResponse(BaseModel):
     user: Optional[UserResponse] = None
     vacancy: Optional[VacancyResponse] = None
     hidden_for_hr: Optional[bool] = False
+    resume_summary: Optional[str] = None
+    match_percentage: Optional[int] = None
 
     class Config:
         from_attributes = True

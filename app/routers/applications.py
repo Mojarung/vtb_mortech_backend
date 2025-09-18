@@ -23,7 +23,7 @@ async def apply_for_vacancy(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Подача заявки на вакансию"""
+    """Подача заявки на вакансию с учетом режима автоинтервью"""
     
     # Проверяем, что вакансия существует и открыта
     vacancy = db.query(Vacancy).filter(Vacancy.id == vacancy_id).first()
@@ -70,13 +70,20 @@ async def apply_for_vacancy(
             detail=f"Ошибка при сохранении файла: {str(e)}"
         )
     
+    # Определяем начальный статус в зависимости от режима
+    initial_status = (
+        ApplicationStatus.APPLIED 
+        if vacancy.auto_interview_enabled 
+        else ApplicationStatus.HR_REVIEW
+    )
+    
     # Создаем запись в базе данных
     db_resume = Resume(
         user_id=current_user.id,
         vacancy_id=vacancy_id,
         file_path=file_path,
         original_filename=file.filename,
-        status=ApplicationStatus.PENDING,
+        status=initial_status,
         notes=cover_letter,
         processing_status=ProcessingStatus.PENDING
     )
@@ -87,8 +94,10 @@ async def apply_for_vacancy(
     
     # Запускаем асинхронную обработку через BackgroundTasks
     background_tasks.add_task(
-        async_resume_processor.process_resume_async, 
-        db_resume.id
+        process_resume_with_ocr, 
+        db_resume.id, 
+        file_path, 
+        vacancy.description
     )
     
     return db_resume
