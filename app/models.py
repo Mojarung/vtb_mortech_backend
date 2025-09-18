@@ -27,11 +27,10 @@ class InterviewStatus(enum.Enum):
     COMPLETED = "completed"
 
 class ApplicationStatus(enum.Enum):
-    PENDING = "pending"  # На рассмотрении
-    INTERVIEW_SCHEDULED = "interview_scheduled"  # Интервью назначено
-    INTERVIEW_COMPLETED = "interview_completed"  # Интервью пройдено
-    ACCEPTED = "accepted"  # Принято
-    REJECTED = "rejected"  # Отклонено
+    APPLIED = "applied"  # Подан
+    HR_REVIEW = "hr_review"  # На рассмотрении у HR
+    AI_APPROVED = "ai_approved"  # Одобрен ИИ
+    REJECTED = "rejected"  # Отклонен
 
 class ProcessingStatus(enum.Enum):
     PENDING = "pending"  # Ожидает обработки
@@ -91,6 +90,10 @@ class Vacancy(Base):
     creator = relationship("User", back_populates="vacancies")
     resumes = relationship("Resume", back_populates="vacancy")
     interviews = relationship("Interview", back_populates="vacancy")
+    hr_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    auto_interview_enabled = Column(Boolean, default=False)
+    
+    hr = relationship("User", foreign_keys=[hr_id])
 
 class Resume(Base):
     __tablename__ = "resumes"
@@ -108,6 +111,8 @@ class Resume(Base):
     notes = Column(Text)  # Заметки HR
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     hidden_for_hr = Column(Boolean, default=False)  # Soft-delete для отображения у HR
+    resume_summary = Column(Text, nullable=True)
+    match_percentage = Column(Integer, nullable=True)
     
     user = relationship("User", back_populates="resumes")
     vacancy = relationship("Vacancy", back_populates="resumes")

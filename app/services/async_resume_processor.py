@@ -42,6 +42,9 @@ class AsyncResumeProcessor:
                     logger.error(f"❌ Резюме {resume_id} не найдено")
                     return
                 
+                # Проверяем, включен ли автоинтервью для вакансии
+                auto_interview_enabled = resume.vacancy.auto_interview_enabled if resume.vacancy else False
+                
                 # Обновляем статус на "в обработке"
                 resume.processing_status = ProcessingStatus.PROCESSING
                 db.commit()
@@ -50,7 +53,7 @@ class AsyncResumeProcessor:
                 if (datetime.utcnow() - start_time).total_seconds() > self.MAX_PROCESSING_TIME:
                     logger.warning(f"⏰ Превышено время обработки для резюме {resume_id}")
                     resume.processing_status = ProcessingStatus.FAILED
-                    resume.status = ApplicationStatus.PENDING
+                    resume.status = ApplicationStatus.HR_REVIEW
                     resume.notes = "Требует дополнительной проверки (превышено время обработки)"
                     db.commit()
                     return
@@ -75,11 +78,28 @@ class AsyncResumeProcessor:
                 # 4. Сохраняем результат анализа
                 await self.save_analysis_result(resume_id, ai_result, db)
                 
-                # 5. Обновляем статусы
-                resume.status = ApplicationStatus.PENDING
+                # 5. Обновляем статусы в зависимости от режима
+                if auto_interview_enabled:
+                    # Автоматический режим
+                    match_score = float(ai_result.get('basic_info', {}).get('match_score', '0%').rstrip('%'))
+                    
+                    if match_score >= 70:  # Порог для автоматического одобрения
+                        resume.status = ApplicationStatus.AI_APPROVED
+                        resume.notes = "Автоматически одобрен AI"
+                    else:
+                        resume.status = ApplicationStatus.REJECTED
+                        resume.notes = "Не прошел автоматический отбор AI"
+                else:
+                    # Ручной режим
+                    resume.status = ApplicationStatus.HR_REVIEW
+                    resume.notes = ai_result.get('recommendation', 'Требует дополнительного анализа')
+                
+                # Сохраняем дополнительную информацию
                 resume.processed = True
                 resume.processing_status = ProcessingStatus.COMPLETED
-                resume.notes = ai_result.get('recommendation', 'Требует дополнительного анализа')
+                resume.resume_summary = ai_result.get('basic_info', {}).get('recommendation', '')
+                resume.match_percentage = int(ai_result.get('basic_info', {}).get('match_score', '0%').rstrip('%'))
+                
                 db.commit()
                 
                 logger.info(f"✅ Резюме {resume_id} успешно обработано")
@@ -91,6 +111,7 @@ class AsyncResumeProcessor:
                 
                 # Обновляем статус на "ошибка"
                 resume.processing_status = ProcessingStatus.FAILED
+                resume.status = ApplicationStatus.HR_REVIEW
                 resume.notes = f"Ошибка обработки: {str(e)}"
                 db.commit()
             
@@ -103,7 +124,7 @@ class AsyncResumeProcessor:
             resume = db.query(Resume).filter(Resume.id == resume_id).first()
             if resume:
                 resume.processing_status = ProcessingStatus.FAILED
-                resume.status = ApplicationStatus.PENDING
+                resume.status = ApplicationStatus.HR_REVIEW
                 resume.notes = "Не удалось обработать резюме. Требуется ручная проверка."
                 db.commit()
         except Exception as final_error:
