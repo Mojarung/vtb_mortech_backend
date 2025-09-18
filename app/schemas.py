@@ -70,7 +70,7 @@ class VacancyCreate(BaseModel):
     company: Optional[str] = None
     status: VacancyStatus = VacancyStatus.OPEN
     original_url: Optional[str] = None
-    hr_id: int
+    creator_id: int
     auto_interview_enabled: bool = False
 
 class VacancyUpdate(BaseModel):
