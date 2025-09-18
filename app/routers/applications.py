@@ -377,7 +377,8 @@ async def process_resume_with_ocr(resume_id: int, file_path: str, job_descriptio
 async def extract_text_with_ocr(file_path: str) -> Optional[str]:
     """Извлечение текста из файла через OCR сервис"""
     try:
-        ocr_url = os.getenv("OCR_URL", "https://moretech-ocr-b2f79abb7082.herokuapp.com/")
+        from app.config import settings
+        ocr_url = settings.ocr_url or "https://moretech-ocr-b2f79abb7082.herokuapp.com/ocr/process-file"
         
         with open(file_path, "rb") as file:
             files = {"file": (os.path.basename(file_path), file, "application/octet-stream")}
