@@ -104,6 +104,34 @@ def get_my_applications(
     ).order_by(Resume.uploaded_at.desc()).all()
 
 
+@router.get("/interview/{resume_id}")
+def get_application_interview(
+    resume_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Получение interview_id для заявки"""
+    from app.models import Interview
+    
+    # Проверяем, что заявка принадлежит текущему пользователю
+    resume = db.query(Resume).filter(
+        Resume.id == resume_id,
+        Resume.user_id == current_user.id
+    ).first()
+    
+    if not resume:
+        raise HTTPException(status_code=404, detail="Заявка не найдена")
+    
+    # Ищем интервью для этой заявки
+    interview = db.query(Interview).filter(
+        Interview.resume_id == resume_id
+    ).first()
+    
+    if not interview:
+        raise HTTPException(status_code=404, detail="Интервью не найдено для этой заявки")
+    
+    return {"interview_id": interview.id}
+
 @router.get("/status/{resume_id}")
 async def get_application_status(
     resume_id: int,
@@ -377,7 +405,7 @@ async def process_resume_with_ocr(resume_id: int, file_path: str, job_descriptio
 async def extract_text_with_ocr(file_path: str) -> Optional[str]:
     """Извлечение текста из файла через OCR сервис"""
     try:
-        ocr_url = "https://mojarung-vtb-mortech-ocr-1103.twc1.net/ocr/process-file"
+        ocr_url = os.getenv("OCR_URL", "https://moretech-ocr-b2f79abb7082.herokuapp.com/")
         
         with open(file_path, "rb") as file:
             files = {"file": (os.path.basename(file_path), file, "application/octet-stream")}
