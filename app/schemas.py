@@ -105,10 +105,12 @@ class VacancyResponse(BaseModel):
     status: VacancyStatus
     original_url: Optional[str]
     creator_id: int
+    hr_id: int
     auto_interview_enabled: bool
-    auto_interview_threshold: int
     created_at: datetime
     updated_at: datetime
+    auto_interview_enabled: bool
+    auto_interview_threshold: int
 
     class Config:
         from_attributes = True
