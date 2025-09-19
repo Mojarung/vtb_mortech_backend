@@ -43,6 +43,7 @@ import aiohttp
 import json
 from app.schemas import InterviewResponse
 from pipecat.transports.services.daily import DailyTransport, DailyParams
+from pipecat.processors.transcript_processor import TranscriptProcessor
 # Load environment variables
 
 logger.add(
@@ -78,7 +79,7 @@ async def get_current_datetime(params: FunctionCallParams):
     datetime_data = {"datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
     await params.result_callback(datetime_data)
 # Create a tools schema with your functions
-def _make_stop_interview(transport: DailyTransport, api_base_url: str, auth_headers: dict, interview_id: int):
+def _make_stop_interview(transport: DailyTransport, api_base_url: str, auth_headers: dict, interview_id: int, transcription_ref: dict):
     async def _stop_interview(params: FunctionCallParams):
         try:
             args = params.arguments or {}
@@ -87,6 +88,9 @@ def _make_stop_interview(transport: DailyTransport, api_base_url: str, auth_head
             payload = {"end_date": datetime.now().isoformat()}
             if report:
                 payload["summary"] = report
+            # Attach dialogue transcription if available
+            if transcription_ref:
+                payload["dialogue"] = transcription_ref
             logger.info(f"Interview {interview_id} stopped with report: {report}")
             async with aiohttp.ClientSession() as session:
                 # Save summary/end_date via API
@@ -226,6 +230,8 @@ async def run_bot(interview_id, room_url, token):
         tools=tools,
     )
     context_aggregator = llm.create_context_aggregator(context)
+    # Shared transcription object to accumulate dialogue during session
+    transcription = {"dialogue": []}
     llm.register_function(
     "get_current_datetime",
     get_current_datetime,
@@ -234,7 +240,7 @@ async def run_bot(interview_id, room_url, token):
     # Register stop_interview tool to allow LLM to save summary and end the session
     llm.register_function(
         "stop_interview",
-        _make_stop_interview(pipecat_transport, api_base_url, auth_headers, interview_id),
+        _make_stop_interview(pipecat_transport, api_base_url, auth_headers, interview_id, transcription),
         cancel_on_interruption=True,
     )
     simli = SimliVideoService(
@@ -247,14 +253,17 @@ async def run_bot(interview_id, room_url, token):
         use_turn_server=True,
         latency_interval=0
     )
+    transcript = TranscriptProcessor()
     # Build the pipeline
     pipeline = Pipeline(
         [
             pipecat_transport.input(),
             context_aggregator.user(),
+            transcript.user(),
             llm,
             simli,
             pipecat_transport.output(),
+            transcript.assistant(),
             context_aggregator.assistant()
         ]
     )
@@ -278,13 +287,16 @@ async def run_bot(interview_id, room_url, token):
                 LLMRunFrame()
             ]
         )
-
+    # transcription already initialized above to ensure availability in stop_interview
     # Handle client disconnection events
     @pipecat_transport.event_handler("on_client_disconnected")
     async def on_client_disconnected(transport, client):
         logger.info(f"Client disconnected")
         await task.cancel()
-
+    @transcript.event_handler("on_transcript_update")
+    async def on_transcript_update(processor, frame):
+        for msg in frame.messages:
+            transcription["dialogue"].append({"timestamp": msg.timestamp if msg.timestamp else "", "role": msg.role, "content": msg.content})
     # Run the pipeline
     runner = PipelineRunner(handle_sigint=False)
     await runner.run(task)
