@@ -28,7 +28,6 @@ from pipecat.services.gemini_multimodal_live.events import (
     EndSensitivity
 )
 from pipecat.transports.base_transport import BaseTransport, TransportParams
-from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketParams
 from pipecat.transports.smallwebrtc.transport import SmallWebRTCTransport
 from pipecat.transcriptions.language import Language
 from simli import SimliConfig
