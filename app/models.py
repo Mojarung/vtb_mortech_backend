@@ -7,8 +7,8 @@ import enum
 Base = declarative_base()
 
 class UserRole(enum.Enum):
-    HR = "HR"
-    USER = "USER"
+    HR = "hr"
+    USER = "user"
 
 class EmploymentType(enum.Enum):
     FULL_TIME = "full_time"
