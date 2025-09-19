@@ -112,7 +112,7 @@ def _make_stop_interview(transport: DailyTransport, api_base_url: str, auth_head
                 pass
     return _stop_interview
 
-async def run_bot(webrtc_connection, interview_id, room_url, token):
+async def run_bot(interview_id, room_url, token):
     logger.info(f"Starting bot")
     pipecat_transport = DailyTransport(
         room_url=room_url,
