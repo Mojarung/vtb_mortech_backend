@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from typing import Dict
 
 import uvicorn
-from services.bot import run_bot
+from app.services.bot import run_bot
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.responses import RedirectResponse
 from loguru import logger
