@@ -91,6 +91,13 @@ class Vacancy(Base):
     creator = relationship("User", back_populates="vacancies")
     resumes = relationship("Resume", back_populates="vacancy")
     interviews = relationship("Interview", back_populates="vacancy")
+<<<<<<< HEAD
+=======
+    hr_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    auto_interview_enabled = Column(Boolean, default=False)
+    
+    hr = relationship("User", foreign_keys=[hr_id])
+>>>>>>> parent of c92c68f (Merge branch 'clean-start' of github.com:Mojarung/vtb_mortech_backend into clean-start)
 
 class Resume(Base):
     __tablename__ = "resumes"
