@@ -5,7 +5,7 @@ from app.database import get_db
 from app.models import Interview, Resume, Vacancy, User
 from app.schemas import InterviewCreate, InterviewUpdate, InterviewResponse
 from app.auth import get_current_user, get_current_hr_user
-#app
+
 router = APIRouter()
 
 @router.post("/", response_model=InterviewResponse)
