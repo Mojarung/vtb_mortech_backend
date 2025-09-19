@@ -12,7 +12,7 @@ from typing import Dict
 
 import uvicorn
 from app.services.bot import run_bot
-from fastapi import BackgroundTasks, FastAPI
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 from loguru import logger
 #from pipecat.transports.smallwebrtc.connection import IceServer, SmallWebRTCConnection
@@ -39,7 +39,7 @@ async def root_redirect():
 
 
 @router.post("/interview/{interview_id}")
-async def offer(interview_id: int, request: dict, background_tasks: BackgroundTasks):
+async def offer(interview_id: int, background_tasks: BackgroundTasks):
     #pc_id = request.get("pc_id")
     #logger.info(f"rofl_answer: {request.get("rofl")}")
     '''if pc_id and pc_id in pcs_map:
