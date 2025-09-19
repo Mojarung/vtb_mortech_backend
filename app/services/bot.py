@@ -6,31 +6,21 @@
 
 import os
 
-from dotenv import load_dotenv
 from loguru import logger
 
-from pipecat.audio.vad.silero import SileroVADAnalyzer
-from pipecat.audio.vad.vad_analyzer import VADParams
 from pipecat.frames.frames import LLMRunFrame, EndFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
-from pipecat.runner.types import RunnerArguments
-from pipecat.runner.utils import create_transport
 import time
 from pipecat.services.gemini_multimodal_live.gemini import (
     GeminiMultimodalLiveLLMService,
-    InputParams,
-    GeminiVADParams,
-    GeminiMultimodalModalities
+    GeminiVADParams
 )
 from pipecat.services.gemini_multimodal_live.events import (
     StartSensitivity,
     EndSensitivity
 )
-from pipecat.transports.base_transport import BaseTransport, TransportParams
-from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketParams
-from pipecat.transports.smallwebrtc.transport import SmallWebRTCTransport
 from pipecat.transcriptions.language import Language
 from simli import SimliConfig
 from pipecat.services.simli.video import SimliVideoService
@@ -222,10 +212,13 @@ async def run_bot(interview_id, room_url, token):
         voice_id="Aoede",  # Aoede, Charon, Fenrir, Kore, Puck
         language=Language.RU_RU,
         vad=GeminiVADParams(
-                start_sensitivity=StartSensitivity.HIGH,    # Быстро детектируем начало речи
-                end_sensitivity=EndSensitivity.LOW,         # Даем больше времени на паузы
-                prefix_padding_ms=500,                      # Увеличиваем буфер до речи
-                silence_duration_ms=2000,                   # Увеличиваем время тишины до 2 сек
+                # Агрессивнее стартуем и быстрее завершаем речь ассистента
+                start_sensitivity=StartSensitivity.HIGH,
+                end_sensitivity=EndSensitivity.MEDIUM,
+                # Небольшая подушка до начала речи пользователя
+                prefix_padding_ms=300,
+                # Быстрее определяем конец речи (0.8–1.2s — комфортно)
+                silence_duration_ms=900,
             ),
         tools=tools,
     )
