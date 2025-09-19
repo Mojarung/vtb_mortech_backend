@@ -71,9 +71,9 @@ async def apply_for_vacancy(
     
     # Определяем начальный статус в зависимости от режима
     initial_status = (
-        ApplicationStatus.PENDING 
+        ApplicationStatus.APPLIED 
         if vacancy.auto_interview_enabled 
-        else ApplicationStatus.PENDING
+        else ApplicationStatus.HR_REVIEW
     )
     
     # Создаем запись в базе данных
