@@ -121,7 +121,7 @@ class ResumeResponse(BaseModel):
     user: Optional[UserResponse] = None
     vacancy: Optional[VacancyResponse] = None
     hidden_for_hr: Optional[bool] = False
-
+    analysis: Optional[ResumeAnalysisResponse] = None
     class Config:
         from_attributes = True
 
