@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, vacancies, resumes, interviews, resume_analysis, analytics, applications, avatar
+from app.routers import auth, vacancies, resumes, interviews, resume_analysis, analytics, applications
 from app.database import create_tables
 from app.logging_config import logger, log_startup, log_request
 import time
