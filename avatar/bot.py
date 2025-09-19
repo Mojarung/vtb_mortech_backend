@@ -11,7 +11,7 @@ from loguru import logger
 
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.audio.vad.vad_analyzer import VADParams
-from pipecat.frames.frames import LLMRunFrame
+from pipecat.frames.frames import LLMMessagesAppendFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
@@ -38,10 +38,8 @@ from pipecat.adapters.schemas.function_schema import FunctionSchema
 from pipecat.adapters.schemas.tools_schema import ToolsSchema
 from pipecat.services.llm_service import FunctionCallParams
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
-import aiohttp
-import json
-from app.schemas import InterviewResponse
 # Load environment variables
+load_dotenv(override=True)
 
 logger.add(
     "pipecat_debug.log",
@@ -59,59 +57,15 @@ datetime_function = FunctionSchema(
     properties={},
     required=[]
 )
-stop_interview = FunctionSchema(
-    name="stop_interview",
-    description="Stop the interview",
-    properties={
-        "report": {
-            "type": "string",
-            "description": "Report of the interview for HR"
-        }
-    },
-    required=["report"]
-)
-tools = ToolsSchema(standard_tools=[datetime_function, stop_interview])
+tools = ToolsSchema(standard_tools=[datetime_function])
 async def get_current_datetime(params: FunctionCallParams):
     # Fetch weather data from your API
     datetime_data = {"datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
     await params.result_callback(datetime_data)
 # Create a tools schema with your functions
-def _make_stop_interview(transport: SmallWebRTCTransport, auth_headers: dict, interview_id: int):
-    async def _stop_interview(params: FunctionCallParams):
-        try:
-            args = params.arguments or {}
-            report = args.get("report")
 
-            payload = {"end_date": datetime.now().isoformat()}
-            if report:
-                payload["summary"] = report
-            logger.info(f"Interview {interview_id} stopped with report: {report}")
-            async with aiohttp.ClientSession() as session:
-                # Save summary/end_date via API
-                url = f"{api_base_url}/interviews/{interview_id}"
-                async with session.put(url, json=payload, headers=auth_headers) as resp:
-                    resp_text = await resp.text()
-                    if resp.status >= 400:
-                        logger.error(f"Failed to update interview {interview_id}: {resp.status} {resp_text}")
-                        await params.result_callback({"ok": False, "status": resp.status, "body": resp_text})
-                    else:
-                        logger.info(f"Interview {interview_id} updated successfully")
-                        # Disconnect WebRTC session
-                        try:
-                            await transport.disconnect()
-                            logger.info("Transport disconnected")
-                        except Exception as e:
-                            logger.error(f"Error disconnecting transport: {e}")
-                        await params.result_callback({"ok": True})
-        except Exception as e:
-            logger.exception("Unhandled error in stop_interview")
-            try:
-                await params.result_callback({"ok": False, "error": str(e)})
-            except Exception:
-                pass
-    return _stop_interview
 
-async def run_bot(webrtc_connection, interview_id):
+async def run_bot(webrtc_connection):
     logger.info(f"Starting bot")
     pipecat_transport = SmallWebRTCTransport(
         webrtc_connection=webrtc_connection,
@@ -127,36 +81,97 @@ async def run_bot(webrtc_connection, interview_id):
         vad_analyzer=None
     ),
     )
-
-    # Configure API base and auth for server-to-server calls
-    api_base_url = os.getenv("API_BASE_URL", "http://localhost:8000")
-    async with aiohttp.ClientSession() as session:
-        async with session.post(f"{api_base_url}/auth/login", json={"username": f"{os.getenv('HR_USERNAME')}", "password": f"{os.getenv('HR_PASSWORD')}"}) as response:
-            if response.status == 200:
-                api_token = await response.json()
-                api_token = api_token["access_token"]
-            else:
-                logger.error(f"Failed to get API token. Status code: {response.status}")
-    auth_headers = {"Authorization": f"Bearer {api_token}"} if api_token else {}
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"{api_base_url}/interviews/{interview_id}", headers=auth_headers) as response:
-            if response.status == 200:
-                interview_data = await response.json()
-                logger.info(f"Interview data: {interview_data}")
-            else:
-                logger.error(f"Failed to get interview data. Status code: {response.status}")
-    interview = InterviewResponse.model_validate(interview_data)
-    vacancy = interview.vacancy
-    resume = interview.resume
-    vacancy = vacancy.model_dump(exclude={"id", "original_url", "creator_id", "hr_id", "auto_interview_enabled", "created_at", "updated_at", "status"})
-    resume = resume.model_dump(exclude={"id", "user_id", "vacancy_id", "file_path", "original_filename", "uploaded_at", "processed", "uploaded_by_hr", "hidden_for_hr", "updated_at", "status", "user"})
-    vacancy_data = json.dumps(vacancy, ensure_ascii=False, indent=2)
-    resume_data = json.dumps(resume, ensure_ascii=False, indent=2)
+    # Create the Gemini Multimodal Live LLM service
     system_instruction = f"""
 Ты — Александра, продвинутый HR-интервьюер.
 
 **Задача:** Провести структурированное интервью на **русском языке**, соблюдая этические нормы (без дискриминационных вопросов). Твоя роль — оценить кандидата и подготовить отчет для HR-менеджера, **а не принимать решение о найме**.
+
+**Входные данные:**
+* **Вакансия:Frontend Developer, база знаний React, TypeScript, JavaScript, HTML/CSS, описание: Собеседование на позицию Frontend разработчика с опытом работы от 3 лет**
+* **Резюме:Храмов Альберт Марсович
+Мужчина, 19 лет, родился 19 января 2006
++7 (939) 3473144 — предпочитаемый способ связи
+albert1yandex@gmail.com
+@albert_khramov — telegram
+Проживает: Москва
+Гражданство: Россия, есть разрешение на работу: Россия
+Не готов к переезду, не готов к командировкам
+Желаемая должность и зарплата
+Аналитик-программист
+Специализации:
+— Аналитик, ML-инженер
+Занятость: частичная занятость, стажировка
+График работы: сменный график, гибкий график, удаленная работа
+Желательное время в пути до работы: не имеет значения
+Образование
+Неоконченное высшее
+2028
+ Национальный исследовательский технологический
+университет «МИСИС», Москва
+ИКН, Информатика и вычислительная техника
+Повышение квалификации, курсы
+2024
+ Deep Learning School (DLS) 1 семестр - 01.09–31.12
+CV-week (Яндекс) - 25.11–30.11
+Введение в машинное обучение (Сириус Курсы) - 01.08–31.08
+2023
+ Основы статистики (Stepik, Anatoliy Karpov) - 01.10–15.11
+Навыки
+Знание языков
+Навыки
+Русский — Родной
+Python Английский язык Аналитическое мышление Обучение и развитие
+Анализ данных PostgreSQL Data Analysis Алгоритмы ML pandas Git sklearn
+Data Science PyTorch CV CatBoost Seaborn Matplotlib transformers NLTK
+TensorFlow Прогнозирование
+Опыт работы над проектами
+Pet-проект: Telegram-бот для DND (AI-ARROW Hackathon, 2024)
+Описание проекта:
+Разработан Telegram-бот, выполняющий роль ведущего для настольной ролевой игры
+Dungeons & Dragons. Использует API ChatGPT для генерации квестов, событий и
+персонажей, а также FLUX API и FreeSound для мультимедийного сопровождения.
+Цель проекта:
+Автоматизация работы ведущего игры, добавление интерактивного мультимедиа.
+Моя роль в проекте:
+• Разработка структуры JSON для хранения состояния игры
+• Написание логики обработки команд
+• Интеграция с API
+• Подготовка пользовательской документации
+• Презентация проекта
+Результат:
+Проект размещен на GitHub: https://github.com/c0lbarator/truedungeons
+Почему я выбрал направление ML?
+Первое знакомство с ML произошло в 2023 году на хакатоне «Цифровой прорыв», где я заинтересовался
+анализом данных. Позже, готовясь к олимпиаде НТО БДИМО, я начал углубленно изучать ML и участвовать в
+тематических мероприятиях.
+Ключевые события, укрепившие интерес к ML:
+•
+•
+•
+Data Dojo (Яндекс, 2024) — разбор решений победителей ML-соревнований
+Moscow AI №0 (МТС, 2024) — обсуждение AI-агентов, генерации видео, моделей типа Kandinsky
+День студента (Сбер, 2025) — лекции о DeepSeek R1 и концепции Scheming у AI
+Соревнования и достижения
+Олимпиады:
+•
+ Олимпиада DANO 2023 — финалист
+•
+ Олимпиада НТО БДИМО (RecSys) 2024 — финалист
+•
+ Олимпиада Изумруд по математике 2024 — призер 3 степени
+Хакатоны (https://github.com/RetRoBich921 пара проектов выложены на моём гите):
+•
+ AI-ARROW 2024 — победитель в специальной номинации
+•
+ Цифровой прорыв (Международный, CV) 2024 — 12 место
+•
+ Alfa Hack (бинарная классификация) 2024 — 5 место
+•
+ ФИЦ (Time Series) 2024 — 4 место
+•
+ Норникель: интеллектуальные горизонты 2024 — 5 место**
+* **Время (минут):5**
 Текущее время: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ---
@@ -186,15 +201,10 @@ async def run_bot(webrtc_connection, interview_id):
         {
             "role": "system",
             "content": system_instruction
-        },
-        {
-            "role": "user",
-            "content": f"""**Входные данные о кандидате:**
-* **Вакансия: {vacancy_data}**
-* **Резюме: {resume_data}**
-* **Время (минут):5**. Поприветствуй кандидата и начни собеседование."""
-        }
-    ])
+        }    
+    ],
+    tools=tools
+)
     llm = GeminiMultimodalLiveLLMService(
         api_key=os.getenv("GOOGLE_API_KEY"),
         system_instruction=system_instruction,
@@ -206,19 +216,12 @@ async def run_bot(webrtc_connection, interview_id):
                 prefix_padding_ms=500,                      # Увеличиваем буфер до речи
                 silence_duration_ms=2000,                   # Увеличиваем время тишины до 2 сек
             ),
-        tools=tools,
     )
     context_aggregator = llm.create_context_aggregator(context)
     llm.register_function(
     "get_current_datetime",
     get_current_datetime,
     cancel_on_interruption=True,  # Cancel if user interrupts (default: True)
-    )
-    # Register stop_interview tool to allow LLM to save summary and end the session
-    llm.register_function(
-        "stop_interview",
-        _make_stop_interview(pipecat_transport, api_base_url, auth_headers),
-        cancel_on_interruption=True,
     )
     simli = SimliVideoService(
         SimliConfig(
@@ -259,7 +262,14 @@ async def run_bot(webrtc_connection, interview_id):
         # Kick off the conversation.
         await task.queue_frames(
             [
-                LLMRunFrame()
+                LLMMessagesAppendFrame(
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": f"Поприветствовать пользователя и представиться.",
+                        }
+                    ]
+                )
             ]
         )
 

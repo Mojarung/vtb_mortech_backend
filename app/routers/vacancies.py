@@ -15,13 +15,6 @@ def create_vacancy(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_hr_user)
 ):
-    # Проверяем, что hr_id принадлежит текущему HR или это сам HR
-    if vacancy.hr_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only create vacancies for yourself"
-        )
-    
     db_vacancy = Vacancy(**vacancy.dict(), creator_id=current_user.id)
     db.add(db_vacancy)
     db.commit()
