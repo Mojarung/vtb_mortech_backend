@@ -149,8 +149,10 @@ async def run_bot(webrtc_connection, interview_id):
     interview = InterviewResponse.model_validate(interview_data)
     vacancy = interview.vacancy
     resume = interview.resume
-    vacancy = vacancy.model_dump(exclude={"id", "original_url", "creator_id", "hr_id", "auto_interview_enabled", "created_at", "updated_at", "status", "status"})
+    vacancy = vacancy.model_dump(exclude={"id", "original_url", "creator_id", "hr_id", "auto_interview_enabled", "created_at", "updated_at", "status"})
+    logger.info(f"Vacancy data: {vacancy}")
     resume = resume.model_dump(exclude={"id", "user_id", "vacancy_id", "file_path", "original_filename", "uploaded_at", "processed", "uploaded_by_hr", "hidden_for_hr", "updated_at", "status", "user"})
+    logger.info(f"Resume data: {resume}")
     vacancy_data = json.dumps(vacancy, ensure_ascii=False, indent=2)
     resume_data = json.dumps(resume, ensure_ascii=False, indent=2)
     system_instruction = f"""
