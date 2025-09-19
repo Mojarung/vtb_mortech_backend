@@ -114,8 +114,7 @@ class AsyncResumeProcessor:
     async def extract_text_with_ocr(self, file_path: str) -> Optional[str]:
         """Извлечение текста через OCR с поддержкой S3 и расширенной обработкой ошибок"""
         try:
-            from app.config import settings
-            ocr_url = settings.ocr_url or "https://moretech-ocr-b2f79abb7082.herokuapp.com/ocr/process-file"
+            ocr_url = os.getenv("OCR_URL", "https://mojarung-vtb-mortech-ocr-1103.twc1.net/ocr/process-file")
 
             # Подготовим bytes и имя файла
             filename = os.path.basename(file_path)

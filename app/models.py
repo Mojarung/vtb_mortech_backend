@@ -94,7 +94,6 @@ class Vacancy(Base):
     interviews = relationship("Interview", back_populates="vacancy")
 
     auto_interview_enabled = Column(Boolean, default=False)
-    auto_interview_threshold = Column(Integer, default=70)  # Порог в процентах (0-100)
 
 class Resume(Base):
     __tablename__ = "resumes"

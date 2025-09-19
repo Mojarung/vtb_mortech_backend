@@ -70,8 +70,6 @@ class VacancyCreate(BaseModel):
     company: Optional[str] = None
     status: VacancyStatus = VacancyStatus.OPEN
     original_url: Optional[str] = None
-    auto_interview_enabled: Optional[bool] = False
-    auto_interview_threshold: Optional[int] = 70
 
 class VacancyUpdate(BaseModel):
     title: Optional[str] = None
@@ -86,8 +84,6 @@ class VacancyUpdate(BaseModel):
     company: Optional[str] = None
     status: Optional[VacancyStatus] = None
     original_url: Optional[str] = None
-    auto_interview_enabled: Optional[bool] = None
-    auto_interview_threshold: Optional[int] = None
 
 class VacancyResponse(BaseModel):
     id: int
@@ -106,8 +102,6 @@ class VacancyResponse(BaseModel):
     creator_id: int
     created_at: datetime
     updated_at: datetime
-    auto_interview_enabled: bool
-    auto_interview_threshold: int
 
     class Config:
         from_attributes = True
