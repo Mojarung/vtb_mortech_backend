@@ -41,6 +41,7 @@ from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 import aiohttp
 import json
 from app.schemas import InterviewResponse
+from pipecat.transports.services.daily import DailyTransport, DailyParams
 # Load environment variables
 
 logger.add(
@@ -76,7 +77,7 @@ async def get_current_datetime(params: FunctionCallParams):
     datetime_data = {"datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
     await params.result_callback(datetime_data)
 # Create a tools schema with your functions
-def _make_stop_interview(transport: SmallWebRTCTransport, api_base_url: str, auth_headers: dict, interview_id: int):
+def _make_stop_interview(transport: DailyTransport, api_base_url: str, auth_headers: dict, interview_id: int):
     async def _stop_interview(params: FunctionCallParams):
         try:
             args = params.arguments or {}
@@ -111,11 +112,12 @@ def _make_stop_interview(transport: SmallWebRTCTransport, api_base_url: str, aut
                 pass
     return _stop_interview
 
-async def run_bot(webrtc_connection, interview_id):
+async def run_bot(webrtc_connection, interview_id, room_url, token):
     logger.info(f"Starting bot")
-    pipecat_transport = SmallWebRTCTransport(
-        webrtc_connection=webrtc_connection,
-        params=TransportParams(
+    pipecat_transport = DailyTransport(
+        room_url=room_url,
+        token=token,
+        params=DailyParams(
         audio_in_enabled=True,
         audio_out_enabled=True,
         video_out_enabled=True,

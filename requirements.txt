@@ -340,6 +340,12 @@ cryptography==46.0.1 \
     #   aiortc
     #   pyopenssl
     #   python-jose
+daily-python==0.19.9 \
+    --hash=sha256:2facaf82b614404c642c70bbf0874fb045d8ad46400acb051470cd4df93cb4db \
+    --hash=sha256:446bb9ee848d88bc68ca29a2216793c9b5ebaf5991bf604daf76f7c5a53d5919 \
+    --hash=sha256:cbc558ad7d49e79b550bf7567b9ceae75e2864d4fcaf41c90377b620e38a2461 \
+    --hash=sha256:ffc205efca7b47739efd358febab17577248c8db2ebc4d17d819307a83b9eefc
+    # via pipecat-ai
 distro==1.9.0 \
     --hash=sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed \
     --hash=sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2

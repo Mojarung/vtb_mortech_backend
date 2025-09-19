@@ -15,20 +15,23 @@ from app.services.bot import run_bot
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.responses import RedirectResponse
 from loguru import logger
-from pipecat.transports.smallwebrtc.connection import IceServer, SmallWebRTCConnection
+#from pipecat.transports.smallwebrtc.connection import IceServer, SmallWebRTCConnection
+from pipecat.transports.daily.utils import DailyRESTHelper, DailyRoomParams
 from fastapi import APIRouter
+import aiohttp
+import os
 
-
+daily_helpers = {}
 router = APIRouter()
 
 # Store connections by pc_id
-pcs_map: Dict[str, SmallWebRTCConnection] = {}
+'''pcs_map: Dict[str, SmallWebRTCConnection] = {}
 
 ice_servers = [
     IceServer(
         urls="stun:stun.l.google.com:19302",
     )
-]
+]'''
 
 @router.get("/", include_in_schema=False)
 async def root_redirect():
@@ -37,9 +40,9 @@ async def root_redirect():
 
 @router.post("/interview/{interview_id}")
 async def offer(interview_id: int, request: dict, background_tasks: BackgroundTasks):
-    pc_id = request.get("pc_id")
-    logger.info(f"rofl_answer: {request.get("rofl")}")
-    if pc_id and pc_id in pcs_map:
+    #pc_id = request.get("pc_id")
+    #logger.info(f"rofl_answer: {request.get("rofl")}")
+    '''if pc_id and pc_id in pcs_map:
         pipecat_connection = pcs_map[pc_id]
         logger.info(f"Reusing existing connection for pc_id: {pc_id}")
         await pipecat_connection.renegotiate(
@@ -53,21 +56,26 @@ async def offer(interview_id: int, request: dict, background_tasks: BackgroundTa
         async def handle_disconnected(webrtc_connection: SmallWebRTCConnection):
             logger.info(f"Discarding peer connection for pc_id: {webrtc_connection.pc_id}")
             pcs_map.pop(webrtc_connection.pc_id, None)
-
-        background_tasks.add_task(run_bot, pipecat_connection, interview_id)
-
-    answer = pipecat_connection.get_answer()
-    # Updating the peer connection inside the map
-    pcs_map[answer["pc_id"]] = pipecat_connection
-
-    return answer
+    '''
+    room = await daily_helpers["rest"].create_room(DailyRoomParams())
+    if not room.url:
+        raise HTTPException(status_code=500, detail="Failed to create room")
+    token = await daily_helpers["rest"].get_token(room.url)
+    if not token:
+        raise HTTPException(status_code=500, detail="Failed to get token")
+    background_tasks.add_task(run_bot, interview_id, room.url, token)
+    return {"url": room.url, "token": token}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    yield  # Run app
-    coros = [pc.disconnect() for pc in pcs_map.values()]
-    await asyncio.gather(*coros)
-    pcs_map.clear()
+    aiohttp_session = aiohttp.ClientSession()
+    daily_helpers["rest"] = DailyRESTHelper(
+        daily_api_key=os.getenv("DAILY_API_KEY", ""),
+        daily_api_url=os.getenv("DAILY_API_URL", "https://api.daily.co/v1"),
+        aiohttp_session=aiohttp_session,
+    )
+    yield
+    await aiohttp_session.close()
 
 
 if __name__ == "__main__":
