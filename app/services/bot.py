@@ -41,7 +41,6 @@ from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 import aiohttp
 import json
 from app.schemas import InterviewResponse
-import enum
 # Load environment variables
 
 logger.add(
@@ -77,7 +76,7 @@ async def get_current_datetime(params: FunctionCallParams):
     datetime_data = {"datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
     await params.result_callback(datetime_data)
 # Create a tools schema with your functions
-def _make_stop_interview(transport: SmallWebRTCTransport, auth_headers: dict, interview_id: int):
+def _make_stop_interview(transport: SmallWebRTCTransport, api_base_url: str, auth_headers: dict, interview_id: int):
     async def _stop_interview(params: FunctionCallParams):
         try:
             args = params.arguments or {}
@@ -131,6 +130,7 @@ async def run_bot(webrtc_connection, interview_id):
 
     # Configure API base and auth for server-to-server calls
     api_base_url = os.getenv("API_BASE_URL", "http://localhost:8000")
+    api_token = None
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{api_base_url}/auth/login", json={"username": f"{os.getenv('HR_USERNAME')}", "password": f"{os.getenv('HR_PASSWORD')}"}) as response:
             if response.status == 200:
@@ -150,23 +150,18 @@ async def run_bot(webrtc_connection, interview_id):
     interview = InterviewResponse.model_validate(interview_data)
     vacancy = interview.vacancy
     resume = interview.resume
-    # Convert Pydantic models to dict with enum handling
-    def convert_enums(obj):
-        if isinstance(obj, dict):
-            return {k: convert_enums(v) for k, v in obj.items()}
-        elif isinstance(obj, list):
-            return [convert_enums(item) for item in obj]
-        elif hasattr(obj, 'value') and hasattr(obj, '__class__') and isinstance(obj, enum.Enum):
-            return obj.value
-        return obj
-    
-    # Get dict representation and exclude fields
-    vacancy_dict = vacancy.model_dump(exclude={"id", "original_url", "creator_id", "hr_id", "auto_interview_enabled", "created_at", "updated_at", "status"})
-    resume_dict = resume.model_dump(exclude={"id", "user_id", "vacancy_id", "file_path", "original_filename", "uploaded_at", "processed", "uploaded_by_hr", "hidden_for_hr", "updated_at", "status", "user"})
-    
-    # Convert enums in the dictionaries
-    vacancy_data = json.dumps(convert_enums(vacancy_dict), ensure_ascii=False, indent=2)
-    resume_data = json.dumps(convert_enums(resume_dict), ensure_ascii=False, indent=2)
+    # Получаем JSON-дружелюбные dict, чтобы корректно сериализовать Enum и datetime
+    vacancy_dict = vacancy.model_dump(
+        mode='json',
+        exclude={"id", "original_url", "creator_id", "hr_id", "auto_interview_enabled", "created_at", "updated_at", "status"}
+    )
+    resume_dict = resume.model_dump(
+        mode='json',
+        exclude={"id", "user_id", "vacancy_id", "file_path", "original_filename", "uploaded_at", "processed", "uploaded_by_hr", "hidden_for_hr", "updated_at", "status", "user"}
+    )
+
+    vacancy_data = json.dumps(vacancy_dict, ensure_ascii=False, indent=2)
+    resume_data = json.dumps(resume_dict, ensure_ascii=False, indent=2)
     
     logger.info(f"Vacancy data: {vacancy_data}")
     logger.info(f"Resume data: {resume_data}")
@@ -234,7 +229,7 @@ async def run_bot(webrtc_connection, interview_id):
     # Register stop_interview tool to allow LLM to save summary and end the session
     llm.register_function(
         "stop_interview",
-        _make_stop_interview(pipecat_transport, api_base_url, auth_headers),
+        _make_stop_interview(pipecat_transport, api_base_url, auth_headers, interview_id),
         cancel_on_interruption=True,
     )
     simli = SimliVideoService(
