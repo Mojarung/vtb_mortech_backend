@@ -214,7 +214,7 @@ async def run_bot(interview_id, room_url, token):
         vad=GeminiVADParams(
                 # Агрессивнее стартуем и быстрее завершаем речь ассистента
                 start_sensitivity=StartSensitivity.HIGH,
-                end_sensitivity=EndSensitivity.MEDIUM,
+                end_sensitivity=EndSensitivity.HIGH,
                 # Небольшая подушка до начала речи пользователя
                 prefix_padding_ms=300,
                 # Быстрее определяем конец речи (0.8–1.2s — комфортно)
