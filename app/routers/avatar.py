@@ -35,8 +35,8 @@ async def root_redirect():
     return RedirectResponse(url="/prebuilt/")
 
 
-@router.post("/interview")
-async def offer(request: dict, background_tasks: BackgroundTasks):
+@router.post("/interview/{interview_id}")
+async def offer(interview_id: int, request: dict, background_tasks: BackgroundTasks):
     pc_id = request.get("pc_id")
     logger.info(f"rofl_answer: {request.get("rofl")}")
     if pc_id and pc_id in pcs_map:
@@ -54,7 +54,7 @@ async def offer(request: dict, background_tasks: BackgroundTasks):
             logger.info(f"Discarding peer connection for pc_id: {webrtc_connection.pc_id}")
             pcs_map.pop(webrtc_connection.pc_id, None)
 
-        background_tasks.add_task(run_bot, pipecat_connection)
+        background_tasks.add_task(run_bot, pipecat_connection, interview_id)
 
     answer = pipecat_connection.get_answer()
     # Updating the peer connection inside the map
