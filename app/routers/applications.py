@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from app.database import get_db
-from app.models import User, Vacancy, Resume, ApplicationStatus, ProcessingStatus, UserRole
+from app.models import User, Vacancy, Resume, ApplicationStatus, ProcessingStatus
 from app.auth import get_current_user, get_current_hr_user
 from app.schemas import ResumeResponse
-from app.services.job_queue import enqueue_analysis
+from app.services.async_resume_processor import async_resume_processor
 from datetime import datetime
 import os
 import shutil
@@ -19,6 +19,7 @@ async def apply_for_vacancy(
     vacancy_id: int,
     file: UploadFile = File(...),
     cover_letter: Optional[str] = Form(None),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -91,8 +92,13 @@ async def apply_for_vacancy(
     db.commit()
     db.refresh(db_resume)
     
-    # Ставим задачу в очередь для асинхронной обработки
-    enqueue_analysis(db_resume.id)
+    # Запускаем асинхронную обработку через BackgroundTasks
+    background_tasks.add_task(
+        process_resume_with_ocr, 
+        db_resume.id, 
+        file_path, 
+        vacancy.description
+    )
     
     return db_resume
 
@@ -339,49 +345,6 @@ def get_application_stats(
         "accepted": accepted_applications,
         "rejected": rejected_applications
     }
-
-@router.get("/hr/candidates", response_model=List[ResumeResponse])
-def get_hr_candidates(
-    hr_id: int,
-    status_filter: Optional[str] = None,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_hr_user)
-):
-    """
-    Получение списка кандидатов для конкретного HR-менеджера
-    Доступ только для HR с соответствующим hr_id
-    """
-    # Проверяем, что текущий HR имеет право доступа к данным
-    if current_user.id != hr_id and current_user.role != UserRole.HR:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="У вас нет доступа к данным этого HR"
-        )
-    
-    # Базовый запрос с загрузкой связанных данных
-    query = db.query(Resume).options(
-        joinedload(Resume.user),      # Загрузка пользователя
-        joinedload(Resume.vacancy)    # Загрузка вакансии
-    ).join(Vacancy).filter(
-        Vacancy.hr_id == hr_id,
-        Resume.hidden_for_hr == False
-    )
-    
-    # Фильтр по статусу, если указан
-    if status_filter:
-        try:
-            status_enum = ApplicationStatus(status_filter)
-            query = query.filter(Resume.status == status_enum)
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Неверный статус заявки"
-            )
-    
-    # Сортировка по дате загрузки (последние сверху)
-    query = query.order_by(Resume.uploaded_at.desc())
-    
-    return query.all()
 
 async def process_resume_with_ocr(resume_id: int, file_path: str, job_description: str):
     """Обработка резюме через OCR и нейронку"""
