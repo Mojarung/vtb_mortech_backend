@@ -31,6 +31,18 @@ ice_servers = [
         urls="stun:stun.l.google.com:19302",
     )
 ]'''
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    aiohttp_session = aiohttp.ClientSession()
+    daily_helpers["rest"] = DailyRESTHelper(
+        daily_api_key=os.getenv("DAILY_API_KEY", ""),
+        daily_api_url=os.getenv("DAILY_API_URL", "https://api.daily.co/v1"),
+        aiohttp_session=aiohttp_session,
+    )
+    yield
+    await aiohttp_session.close()
+
+router = APIRouter(lifespan=lifespan)
 
 @router.get("/", include_in_schema=False)
 async def root_redirect():
@@ -64,19 +76,6 @@ async def offer(interview_id: int, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=500, detail="Failed to get token")
     background_tasks.add_task(run_bot, interview_id, room.url, token)
     return {"url": room.url, "token": token}
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    aiohttp_session = aiohttp.ClientSession()
-    daily_helpers["rest"] = DailyRESTHelper(
-        daily_api_key=os.getenv("DAILY_API_KEY", ""),
-        daily_api_url=os.getenv("DAILY_API_URL", "https://api.daily.co/v1"),
-        aiohttp_session=aiohttp_session,
-    )
-    yield
-    await aiohttp_session.close()
-router = APIRouter(lifespan=lifespan)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WebRTC demo")
