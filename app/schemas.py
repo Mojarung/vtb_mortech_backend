@@ -105,26 +105,6 @@ class VacancyResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-class ResumeResponse(BaseModel):
-    id: int
-    user_id: Optional[int]
-    vacancy_id: int
-    file_path: str
-    original_filename: str
-    uploaded_at: datetime
-    processed: bool
-    uploaded_by_hr: bool
-    status: ApplicationStatus
-    notes: Optional[str] = None
-    updated_at: datetime
-    user: Optional[UserResponse] = None
-    vacancy: Optional[VacancyResponse] = None
-    hidden_for_hr: Optional[bool] = False
-    analysis: Optional[ResumeAnalysisResponse] = None
-    class Config:
-        from_attributes = True
-
 class ResumeAnalysisResponse(BaseModel):
     id: int
     resume_id: int
@@ -152,6 +132,26 @@ class ResumeAnalysisResponse(BaseModel):
 
     class Config:
         from_attributes = True
+class ResumeResponse(BaseModel):
+    id: int
+    user_id: Optional[int]
+    vacancy_id: int
+    file_path: str
+    original_filename: str
+    uploaded_at: datetime
+    processed: bool
+    uploaded_by_hr: bool
+    status: ApplicationStatus
+    notes: Optional[str] = None
+    updated_at: datetime
+    user: Optional[UserResponse] = None
+    vacancy: Optional[VacancyResponse] = None
+    hidden_for_hr: Optional[bool] = False
+    analysis: Optional[ResumeAnalysisResponse] = None
+    class Config:
+        from_attributes = True
+
+
 
 class InterviewCreate(BaseModel):
     vacancy_id: int
