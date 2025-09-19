@@ -28,7 +28,7 @@ app.add_middleware(
         "http://127.0.0.1:8000",  # Backend local
         "http://localhost", # Localhost testing
         "http://127.0.0.1", # Localhost testing
-        "https://moretech-backend-80a7fa1a3fab.herokuapp.com/" # Backend production (for Swagger UI if needed)
+        "https://moretech-backend-80a7fa1a3fab.herokuapp.com/" # Backend production (for Swagger UI if needed),
     ],
     allow_credentials=True,
     allow_methods=["*"],

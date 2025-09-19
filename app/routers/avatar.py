@@ -22,7 +22,6 @@ import aiohttp
 import os
 
 daily_helpers = {}
-router = APIRouter()
 
 # Store connections by pc_id
 '''pcs_map: Dict[str, SmallWebRTCConnection] = {}
@@ -76,6 +75,7 @@ async def lifespan(app: FastAPI):
     )
     yield
     await aiohttp_session.close()
+router = APIRouter(lifespan=lifespan)
 
 
 if __name__ == "__main__":
