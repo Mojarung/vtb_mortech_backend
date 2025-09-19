@@ -41,6 +41,7 @@ from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 import aiohttp
 import json
 from app.schemas import InterviewResponse
+import enum
 # Load environment variables
 
 logger.add(
