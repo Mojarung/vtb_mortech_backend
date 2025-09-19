@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, vacancies, resumes, interviews, resume_analysis, analytics, applications
+from app.routers import auth, vacancies, resumes, interviews, resume_analysis, analytics, applications, avatar
 from app.database import create_tables
 from app.logging_config import logger, log_startup, log_request
 import time
@@ -58,7 +58,7 @@ app.include_router(interviews.router, prefix="/interviews", tags=["interviews"])
 app.include_router(resume_analysis.router, prefix="/resume-analysis", tags=["resume-analysis"])
 app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 app.include_router(applications.router, prefix="/applications", tags=["applications"])
-
+app.include_router(avatar.router, prefix="/avatar", tags=["avatar"])
 @app.on_event("startup")
 async def startup_event():
     try:

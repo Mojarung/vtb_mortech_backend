@@ -35,7 +35,7 @@ async def root_redirect():
     return RedirectResponse(url="/prebuilt/")
 
 
-@router.post("/api/offer")
+@router.post("/interview")
 async def offer(request: dict, background_tasks: BackgroundTasks):
     pc_id = request.get("pc_id")
     logger.info(f"rofl_answer: {request.get("rofl")}")
