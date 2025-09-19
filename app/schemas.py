@@ -70,7 +70,7 @@ class VacancyCreate(BaseModel):
     company: Optional[str] = None
     status: VacancyStatus = VacancyStatus.OPEN
     original_url: Optional[str] = None
-    creator_id: int
+    creator_id: Optional[int] = None
     auto_interview_enabled: bool = False
     auto_interview_threshold: Optional[int] = 70
 
