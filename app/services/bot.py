@@ -117,6 +117,7 @@ async def run_bot(interview_id, room_url, token):
     pipecat_transport = DailyTransport(
         room_url=room_url,
         token=token,
+        bot_name="Alexandra",
         params=DailyParams(
         audio_in_enabled=True,
         audio_out_enabled=True,
