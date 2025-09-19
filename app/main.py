@@ -29,6 +29,7 @@ app.add_middleware(
         "http://localhost", # Localhost testing
         "http://127.0.0.1", # Localhost testing
         "https://moretech-backend-80a7fa1a3fab.herokuapp.com/" # Backend production (for Swagger UI if needed),
+        "https://moretech-avatar-dd041c6ae94a.herokuapp.com/"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -58,7 +59,6 @@ app.include_router(interviews.router, prefix="/interviews", tags=["interviews"])
 app.include_router(resume_analysis.router, prefix="/resume-analysis", tags=["resume-analysis"])
 app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 app.include_router(applications.router, prefix="/applications", tags=["applications"])
-app.include_router(avatar.router, prefix="/avatar", tags=["avatar"])
 @app.on_event("startup")
 async def startup_event():
     try:
