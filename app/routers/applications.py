@@ -116,7 +116,6 @@ def get_application_interview(
     # Проверяем, что заявка принадлежит текущему пользователю
     resume = db.query(Resume).filter(
         Resume.id == resume_id,
-        Resume.user_id == current_user.id
     ).first()
     
     if not resume:
