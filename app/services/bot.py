@@ -17,6 +17,7 @@ from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
+import time
 from pipecat.services.gemini_multimodal_live.gemini import (
     GeminiMultimodalLiveLLMService,
     InputParams,
@@ -99,6 +100,7 @@ def _make_stop_interview(transport: DailyTransport, api_base_url: str, auth_head
                         logger.info(f"Interview {interview_id} updated successfully")
                         # Disconnect WebRTC session
                         try:
+                            time.sleep(10)
                             await transport.output().stop(EndFrame())
                             logger.info("Transport disconnected")
                         except Exception as e:
@@ -194,7 +196,7 @@ async def run_bot(interview_id, room_url, token):
 * **Сильные стороны:** (список 2-3)
 * **Риски / Зоны роста:** (список 1-2)
 * **Рекомендация:** `[Рекомендовать / Рассмотреть / Не рекомендовать]` с четкой аргументацией.
-Пожалуйста, произноси числительные на русском языке, для этого можешь перевести их в письменную форму, например, 3 - "три
+Пожалуйста, произноси числительные на русском языке, для этого можешь перевести их в письменную форму, например, 3 - "три"
     """
     context = OpenAILLMContext(
     messages=[
@@ -240,7 +242,6 @@ async def run_bot(interview_id, room_url, token):
             apiKey=os.getenv("SIMLI_API_KEY"),
             faceId=os.getenv("SIMLI_FACE_ID"),
             handleSilence=True,
-            maxSessionLength=300,
             maxIdleTime=30,
         ),
         use_turn_server=True,

@@ -9,7 +9,9 @@ aiofiles==24.1.0 \
 aiohappyeyeballs==2.6.1 \
     --hash=sha256:c3f9d0113123803ccadfdf3f0faa505bc78e6a72d1cc4806cbd719826e943558 \
     --hash=sha256:f349ba8f4b75cb25c99c5c2d84e997e485204d2902a9597802b0371f09331fb8
-    # via aiohttp
+    # via
+    #   aiohttp
+    #   vtb-mortech-backend
 aiohttp==3.12.15 \
     --hash=sha256:049ec0360f939cd164ecbfd2873eaa432613d5e77d6b04535e3d1fbae5a9e645 \
     --hash=sha256:1a649001580bdb37c6fdb1bebbd7e3bc688e8ec2b5c6f52edbb664662b17dc84 \
@@ -29,11 +31,15 @@ aiohttp==3.12.15 \
     --hash=sha256:b97752ff12cc12f46a9b20327104448042fce5c33a624f88c18f66f9368091c7 \
     --hash=sha256:f0fa751efb11a541f57db59c1dd821bec09031e01452b2b6217319b3a1f34f3d \
     --hash=sha256:f813c3e9032331024de2eb2e32a88d86afb69291fbc37a3a3ae81cc9917fb3d0
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 aioice==0.10.1 \
     --hash=sha256:5c8e1422103448d171925c678fb39795e5fe13d79108bebb00aa75a899c2094a \
     --hash=sha256:f31ae2abc8608b1283ed5f21aebd7b6bd472b152ff9551e9b559b2d8efed79e9
-    # via aiortc
+    # via
+    #   aiortc
+    #   vtb-mortech-backend
 aiortc==1.11.0 \
     --hash=sha256:018b0d623c6b88b9cd4bd3b700dece943731d081c50fef1b866a43f6b46a7343 \
     --hash=sha256:0bdd6477ac9227e9fd80ca079d6614b5b0b45c1887f214e67cddc7fde2692d95 \
@@ -44,12 +50,14 @@ aiortc==1.11.0 \
     --hash=sha256:bc311672d25091061eaa9c3fe1adbb7f2ef677c6fabd2cffdff8c724c1f81ce7 \
     --hash=sha256:f57c5804135d357291f25de65faf7a844d7595c6eb12493e0a304f4d5c34d660
     # via
-    #   pipecat-ai
     #   simli-ai
+    #   vtb-mortech-backend
 aiosignal==1.4.0 \
     --hash=sha256:053243f8b92b990551949e63930a839ff0cf0b0ebbe0597b0f3fb19e1a0fe82e \
     --hash=sha256:f47eecd9468083c2029cc99945502cb7708b082c232f9aca65da147157b251c7
-    # via aiohttp
+    # via
+    #   aiohttp
+    #   vtb-mortech-backend
 alembic==1.16.5 \
     --hash=sha256:a88bb7f6e513bd4301ecf4c7f2206fe93f9913f9b48dac3b78babde2d6fe765e \
     --hash=sha256:e845dfe090c5ffa7b92593ae6687c5cb1a101e91fa53868497dbd79847f9dbe3
@@ -57,7 +65,9 @@ alembic==1.16.5 \
 annotated-types==0.7.0 \
     --hash=sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53 \
     --hash=sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89
-    # via pydantic
+    # via
+    #   pydantic
+    #   vtb-mortech-backend
 anyio==4.10.0 \
     --hash=sha256:3f3fae35c96039744587aa5b8371e7e8e603c0702999535961dd336026973ba6 \
     --hash=sha256:60e474ac86736bbfd6f210f7a61218939c318f43f9972497381f1c5e930ed3d1
@@ -66,11 +76,14 @@ anyio==4.10.0 \
     #   httpx
     #   openai
     #   starlette
+    #   vtb-mortech-backend
     #   watchfiles
 attrs==25.3.0 \
     --hash=sha256:427318ce031701fea540783410126f03899a97ffc6f61596ad581ac2e40e3bc3 \
     --hash=sha256:75d7cefc7fb576747b2c81b4442d4d4a1ce0900973527c011d1030fd3bf4af1b
-    # via aiohttp
+    # via
+    #   aiohttp
+    #   vtb-mortech-backend
 audioop-lts==0.2.2 \
     --hash=sha256:0337d658f9b81f4cd0fdb1f47635070cc084871a3d4646d9de74fdf4e7c3d24a \
     --hash=sha256:03f061a1915538fd96272bac9551841859dbb2e3bf73ebe4a23ef043766f5449 \
@@ -121,7 +134,9 @@ audioop-lts==0.2.2 \
     --hash=sha256:f9ee9b52f5f857fbaf9d605a360884f034c92c1c23021fb90b2e39b8e64bede6 \
     --hash=sha256:fbdd522624141e40948ab3e8cdae6e04c748d78710e9f0f8d4dae2750831de19 \
     --hash=sha256:fd3d4602dc64914d462924a08c1a9816435a2155d74f325853c1f1ac3b2d9800
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 av==14.4.0 \
     --hash=sha256:38c18f036aeb6dc9abf5e867d998c867f9ec93a5f722b60721fdffc123bbb2ae \
     --hash=sha256:3d2aea7c602b105363903e4017103bc4b60336e7aff80e1c22e8b4ec09fd125f \
@@ -136,6 +151,7 @@ av==14.4.0 \
     # via
     #   aiortc
     #   simli-ai
+    #   vtb-mortech-backend
 bcrypt==4.3.0 \
     --hash=sha256:0042b2e342e9ae3d2ed22727c1262f76cc4f345683b5c1715f0250cf4277294f \
     --hash=sha256:0142b2cb84a009f8452c8c5a33ace5e3dfec4159e7735f5afe9a4d50a8ea722d \
@@ -180,7 +196,9 @@ bcrypt==4.3.0 \
     --hash=sha256:f1e3ffa1365e8702dc48c8b360fef8d7afeca482809c5e45e653af82ccd088c1 \
     --hash=sha256:f6746e6fec103fcd509b96bacdfdaa2fbde9a553245dbada284435173a6f1aef \
     --hash=sha256:f81b0ed2639568bf14749112298f9e4e2b28853dab50a8b357e31798686a036d
-    # via passlib
+    # via
+    #   passlib
+    #   vtb-mortech-backend
 boto3==1.40.34 \
     --hash=sha256:6770478420b7383657c5f9c0805c6912eefb0dac9f1c54a32198b2a175feaa5c \
     --hash=sha256:e0e0cc46ba7596a75509caa21c1200a488cf0676a51c1bd9c01428886b43b7b8
@@ -191,10 +209,13 @@ botocore==1.40.34 \
     # via
     #   boto3
     #   s3transfer
+    #   vtb-mortech-backend
 cachetools==5.5.2 \
     --hash=sha256:1a661caa9175d26759571b2e19580f9d6393969e5dfca11fdb1f947a23e640d4 \
     --hash=sha256:d26a22bcc62eb95c3beabd9f1ee5e820d3d2704fe2967cbe350e20c8ffcd3f0a
-    # via google-auth
+    # via
+    #   google-auth
+    #   vtb-mortech-backend
 certifi==2025.8.3 \
     --hash=sha256:e564105f78ded564e3ae7c923924435e1daa7463faeab5bb932bc53ffae63407 \
     --hash=sha256:f6c12493cfb1b06ba2ff328595af9350c65d6644968e5d3a2ffd78699af217a5
@@ -203,6 +224,7 @@ certifi==2025.8.3 \
     #   httpx
     #   requests
     #   sentry-sdk
+    #   vtb-mortech-backend
 cffi==2.0.0 \
     --hash=sha256:00bdf7acc5f795150faa6957054fbbca2439db2f775ce831222b66f192f03beb \
     --hash=sha256:07b271772c100085dd28b74fa0cd81c8fb1a3ba18b21e03d7c27f3436a10606b \
@@ -243,6 +265,7 @@ cffi==2.0.0 \
     #   aiortc
     #   cryptography
     #   pylibsrtp
+    #   vtb-mortech-backend
 charset-normalizer==3.4.3 \
     --hash=sha256:14c2a87c65b351109f6abfc424cab3927b3bdece6f706e4d12faaf3d52ee5efe \
     --hash=sha256:18343b2d246dc6761a249ba1fb13f9ee9a2bcd95decc767319506056ea4ad4dc \
@@ -268,7 +291,9 @@ charset-normalizer==3.4.3 \
     --hash=sha256:cf1ebb7d78e1ad8ec2a8c4732c7be2e736f6e5123a4146c5b89c9d1f585f8cef \
     --hash=sha256:d716a916938e03231e86e43782ca7878fb602a125a91e7acb8b5112e2e96ac16 \
     --hash=sha256:fdabf8315679312cfa71302f9bd509ded4f2f263fb5b765cf1433b39106c3cc9
-    # via requests
+    # via
+    #   requests
+    #   vtb-mortech-backend
 click==8.3.0 \
     --hash=sha256:9b9f285302c6e3064f4330c05f05b81945b2a39544279343e6e7c5f27a9baddc \
     --hash=sha256:e7b8232224eba16f4ebe410c25ced9f7875cb5f3263ffc93cc3e8da705e229c4
@@ -277,6 +302,7 @@ click==8.3.0 \
     #   rich-toolkit
     #   typer
     #   uvicorn
+    #   vtb-mortech-backend
 colorama==0.4.6 ; sys_platform == 'win32' \
     --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
     --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
@@ -285,10 +311,13 @@ colorama==0.4.6 ; sys_platform == 'win32' \
     #   loguru
     #   tqdm
     #   uvicorn
+    #   vtb-mortech-backend
 coloredlogs==15.0.1 \
     --hash=sha256:612ee75c546f53e92e70049c9dbfcc18c935a2b9a53b66085ce9ef6a6e5c0934 \
     --hash=sha256:7c991aa71a4577af2f82600d8f8f3a89f936baeaf9b50a9c197da014e5bf16b0
-    # via onnxruntime
+    # via
+    #   onnxruntime
+    #   vtb-mortech-backend
 cryptography==46.0.1 \
     --hash=sha256:0a17377fa52563d730248ba1f68185461fff36e8bc75d8787a7dd2e20a802b7a \
     --hash=sha256:0d1922d9280e08cde90b518a10cd66831f632960a8d08cb3418922d83fce6f12 \
@@ -340,39 +369,50 @@ cryptography==46.0.1 \
     #   aiortc
     #   pyopenssl
     #   python-jose
+    #   vtb-mortech-backend
 daily-python==0.19.9 \
     --hash=sha256:2facaf82b614404c642c70bbf0874fb045d8ad46400acb051470cd4df93cb4db \
     --hash=sha256:446bb9ee848d88bc68ca29a2216793c9b5ebaf5991bf604daf76f7c5a53d5919 \
     --hash=sha256:cbc558ad7d49e79b550bf7567b9ceae75e2864d4fcaf41c90377b620e38a2461 \
     --hash=sha256:ffc205efca7b47739efd358febab17577248c8db2ebc4d17d819307a83b9eefc
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 distro==1.9.0 \
     --hash=sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed \
     --hash=sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2
-    # via openai
+    # via
+    #   openai
+    #   vtb-mortech-backend
 dnspython==2.8.0 \
     --hash=sha256:01d9bbc4a2d76bf0db7c1f729812ded6d912bd318d3b1cf81d30c0f845dbf3af \
     --hash=sha256:181d3c6996452cb1189c4046c61599b84a5a86e099562ffde77d26984ff26d0f
     # via
     #   aioice
     #   email-validator
+    #   vtb-mortech-backend
 docstring-parser==0.17.0 \
     --hash=sha256:583de4a309722b3315439bb31d64ba3eebada841f2e2cee23b99df001434c912 \
     --hash=sha256:cf2569abd23dce8099b300f9b4fa8191e9582dda731fd533daf54c4551658708
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 dotenv==0.9.9 \
     --hash=sha256:29cf74a087b31dafdb5a446b6d7e11cbce8ed2741540e2339c69fbef92c94ce9
     # via vtb-mortech-backend
 ecdsa==0.19.1 \
     --hash=sha256:30638e27cf77b7e15c4c4cc1973720149e1033827cfd00661ca5c8cc0cdb24c3 \
     --hash=sha256:478cba7b62555866fcb3bb3fe985e06decbdb68ef55713c4e5ab98c57d508e61
-    # via python-jose
+    # via
+    #   python-jose
+    #   vtb-mortech-backend
 email-validator==2.3.0 \
     --hash=sha256:80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4 \
     --hash=sha256:9fc05c37f2f6cf439ff414f8fc46d917929974a82244c20eb10231ba60c54426
     # via
     #   fastapi
     #   pydantic
+    #   vtb-mortech-backend
 fastapi==0.116.2 \
     --hash=sha256:231a6af2fe21cfa2c32730170ad8514985fc250bec16c9b242d3b94c835ef529 \
     --hash=sha256:c3a7a8fb830b05f7e087d920e0d786ca1fc9892eb4e9a84b227be4c1bc7569db
@@ -383,15 +423,21 @@ fastapi==0.116.2 \
 fastapi-cli==0.0.12 \
     --hash=sha256:09cbc2d171639ce9e489c78ad8a439328993a8f4c9005d78d58498327492aa3a \
     --hash=sha256:ec8f8b12080b5a29a08c7f15ba50649f59b5cd28646cb1737c511b319d0408e4
-    # via fastapi
+    # via
+    #   fastapi
+    #   vtb-mortech-backend
 fastapi-cloud-cli==0.2.0 \
     --hash=sha256:115d9b1f198b09ecc66f67156d183babb4fc14431414cc2e57a7649624782da6 \
     --hash=sha256:8dc13f95246d80e625e2789a21760494e855d887f70caae109423d00064772d1
-    # via fastapi-cli
+    # via
+    #   fastapi-cli
+    #   vtb-mortech-backend
 flatbuffers==25.2.10 \
     --hash=sha256:97e451377a41262f8d9bd4295cc836133415cc03d8cb966410a4af92eb00d26e \
     --hash=sha256:ebba5f4d5ea615af3f7fd70fc310636fbb2bbd1f566ac0a23d98dd412de50051
-    # via onnxruntime
+    # via
+    #   onnxruntime
+    #   vtb-mortech-backend
 frozenlist==1.7.0 \
     --hash=sha256:04fb24d104f425da3540ed83cbfc31388a586a7696142004c577fa61c6298c3f \
     --hash=sha256:05579bf020096fe05a764f1f84cd104a12f78eaab68842d036772dc6d4870b4b \
@@ -432,16 +478,20 @@ frozenlist==1.7.0 \
     # via
     #   aiohttp
     #   aiosignal
+    #   vtb-mortech-backend
 future==1.0.0 \
     --hash=sha256:929292d34f5872e70396626ef385ec22355a1fae8ad29e1a734c3e43f9fbc216 \
     --hash=sha256:bd2968309307861edae1458a4f8a4f3598c03be43b97521076aebf5d94c07b05
-    # via pyloudnorm
+    # via
+    #   pyloudnorm
+    #   vtb-mortech-backend
 google-api-core==2.25.1 \
     --hash=sha256:8a2a56c1fef82987a524371f99f3bd0143702fecc670c72e600c1cda6bf8dbb7 \
     --hash=sha256:d2aaa0b13c78c61cb3f4282c464c046e45fbd75755683c9c525e6e8f7ed0a5e8
     # via
     #   google-cloud-speech
     #   google-cloud-texttospeech
+    #   vtb-mortech-backend
 google-auth==2.40.3 \
     --hash=sha256:1370d4593e86213563547f97a92752fc658456fe4514c809544f330fed45a7ca \
     --hash=sha256:500c3a29adedeb36ea9cf24b8d10858e152f2412e3ca37829b3fa18e33d63b77
@@ -450,14 +500,19 @@ google-auth==2.40.3 \
     #   google-cloud-speech
     #   google-cloud-texttospeech
     #   google-genai
+    #   vtb-mortech-backend
 google-cloud-speech==2.32.0 \
     --hash=sha256:537b279d8697fe5b5bc5f485f2d48a6b343fc76f73385b5776806c37bc5f8ea1 \
     --hash=sha256:89c2618b131d310c6c00e7c04d290ffa9a5d68c20191030766a7737850f04e77
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 google-cloud-texttospeech==2.26.0 \
     --hash=sha256:43af1b88a6b9becde69a3bbf8aa80cdfa5f12f8999e56bcf9dec374354ed7f6a \
     --hash=sha256:837835aadeb261983d139ef1c5e60c99f80199e22330bf4f62e217360b9e07b8
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 google-crc32c==1.7.1 \
     --hash=sha256:0f99eaa09a9a7e642a61e06742856eec8b19fc0037832e03f941fe7cf0c8e4db \
     --hash=sha256:2bff2305f98846f3e825dbeec9ee406f89da7962accdb29356e4eadc251bd472 \
@@ -467,17 +522,22 @@ google-crc32c==1.7.1 \
     --hash=sha256:df8b38bdaf1629d62d51be8bdd04888f37c451564c2042d36e5812da9eff3c35 \
     --hash=sha256:e10554d4abc5238823112c2ad7e4560f96c7bf3820b202660373d769d9e6e4c9 \
     --hash=sha256:e42e20a83a29aa2709a0cf271c7f8aefaa23b7ab52e53b322585297bb94d4638
-    # via aiortc
+    # via
+    #   aiortc
+    #   vtb-mortech-backend
 google-genai==1.24.0 \
     --hash=sha256:98be8c51632576289ecc33cd84bcdaf4356ef0bef04ac7578660c49175af22b9 \
     --hash=sha256:bc896e30ad26d05a2af3d17c2ba10ea214a94f1c0cdb93d5c004dc038774e75a
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 googleapis-common-protos==1.70.0 \
     --hash=sha256:0e1b44e0ea153e6594f9f394fef15193a68aaaea2d843f83e2742717ca753257 \
     --hash=sha256:b8bfcca8c25a2bb253e0e0b0adaf8c00773e5e6af6fd92397576680b807e0fd8
     # via
     #   google-api-core
     #   grpcio-status
+    #   vtb-mortech-backend
 greenlet==3.2.4 ; (python_full_version < '3.14' and platform_machine == 'AMD64') or (python_full_version < '3.14' and platform_machine == 'WIN32') or (python_full_version < '3.14' and platform_machine == 'aarch64') or (python_full_version < '3.14' and platform_machine == 'amd64') or (python_full_version < '3.14' and platform_machine == 'ppc64le') or (python_full_version < '3.14' and platform_machine == 'win32') or (python_full_version < '3.14' and platform_machine == 'x86_64') \
     --hash=sha256:00fadb3fedccc447f517ee0d3fd8fe49eae949e1cd0f6a611818f4f6fb7dc83b \
     --hash=sha256:061dc4cf2c34852b052a8620d40f36324554bc192be474b9e9770e8c042fd735 \
@@ -496,7 +556,9 @@ greenlet==3.2.4 ; (python_full_version < '3.14' and platform_machine == 'AMD64')
     --hash=sha256:d25c5091190f2dc0eaa3f950252122edbbadbb682aa7b1ef2f8af0f8c0afefae \
     --hash=sha256:d76383238584e9711e20ebe14db6c88ddcedc1829a9ad31a584389463b5aa504 \
     --hash=sha256:e37ab26028f12dbb0ff65f29a8d3d44a765c61e729647bf2ddfbbed621726f01
-    # via sqlalchemy
+    # via
+    #   sqlalchemy
+    #   vtb-mortech-backend
 grpcio==1.75.0 \
     --hash=sha256:0c91d5b16eff3cbbe76b7a1eaaf3d91e7a954501e9d4f915554f87c470475c3d \
     --hash=sha256:1bb78d052948d8272c820bb928753f16a614bb2c42fbf56ad56636991b427518 \
@@ -512,20 +574,26 @@ grpcio==1.75.0 \
     # via
     #   google-api-core
     #   grpcio-status
+    #   vtb-mortech-backend
 grpcio-status==1.71.2 \
     --hash=sha256:803c98cb6a8b7dc6dbb785b1111aed739f241ab5e9da0bba96888aa74704cfd3 \
     --hash=sha256:c7a97e176df71cdc2c179cd1847d7fc86cca5832ad12e9798d7fed6b7a1aab50
-    # via google-api-core
+    # via
+    #   google-api-core
+    #   vtb-mortech-backend
 h11==0.16.0 \
     --hash=sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1 \
     --hash=sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86
     # via
     #   httpcore
     #   uvicorn
+    #   vtb-mortech-backend
 httpcore==1.0.9 \
     --hash=sha256:2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55 \
     --hash=sha256:6e34463af53fd2ab5d807f399a9b45ea31c3dfa2276f15a2c3f00afff6e176e8
-    # via httpx
+    # via
+    #   httpx
+    #   vtb-mortech-backend
 httptools==0.6.4 \
     --hash=sha256:28908df1b9bb8187393d5b5db91435ccc9c8e891657f9cbb42a2541b44c82fc8 \
     --hash=sha256:322d20ea9cdd1fa98bd6a74b77e2ec5b818abdc3d36695ab402a0de8ef2865a3 \
@@ -535,7 +603,9 @@ httptools==0.6.4 \
     --hash=sha256:4e93eee4add6493b59a5c514da98c939b244fce4a0d8879cd3f466562f4b7d5c \
     --hash=sha256:856f4bc0478ae143bad54a4242fccb1f3f86a6e1be5548fecfd4102061b3a083 \
     --hash=sha256:ade273d7e767d5fae13fa637f4d53b6e961fb7fd93c7797562663f0171c26660
-    # via uvicorn
+    # via
+    #   uvicorn
+    #   vtb-mortech-backend
 httpx==0.28.1 \
     --hash=sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc \
     --hash=sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad
@@ -549,7 +619,9 @@ httpx==0.28.1 \
 humanfriendly==10.0 \
     --hash=sha256:1697e1a8a8f550fd43c2865cd84542fc175a61dcb779b6fee18cf6b6ccba1477 \
     --hash=sha256:6b0b831ce8f15f7300721aa49829fc4e83921a9a301cc7f606be6686a2288ddc
-    # via coloredlogs
+    # via
+    #   coloredlogs
+    #   vtb-mortech-backend
 idna==3.10 \
     --hash=sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9 \
     --hash=sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3
@@ -558,19 +630,26 @@ idna==3.10 \
     #   email-validator
     #   httpx
     #   requests
+    #   vtb-mortech-backend
     #   yarl
 ifaddr==0.2.0 \
     --hash=sha256:085e0305cfe6f16ab12d72e2024030f5d52674afad6911bb1eee207177b8a748 \
     --hash=sha256:cc0cbfcaabf765d44595825fb96a99bb12c79716b73b44330ea38ee2b0c4aed4
-    # via aioice
+    # via
+    #   aioice
+    #   vtb-mortech-backend
 itsdangerous==2.2.0 \
     --hash=sha256:c6242fc49e35958c8b15141343aa660db5fc54d4f13a1db01a3f5891b98700ef \
     --hash=sha256:e0050c0b7da1eea53ffaf149c0cfbb5c6e2e2b69c4bef22c81fa6eb73e5f6173
-    # via fastapi
+    # via
+    #   fastapi
+    #   vtb-mortech-backend
 jinja2==3.1.6 \
     --hash=sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d \
     --hash=sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67
-    # via fastapi
+    # via
+    #   fastapi
+    #   vtb-mortech-backend
 jiter==0.11.0 \
     --hash=sha256:089f9df9f69532d1339e83142438668f52c97cd22ee2d1195551c2b1a9e6cf33 \
     --hash=sha256:1d9637eaf8c1d6a63d6562f2a6e5ab3af946c66037eb1b894e8fad75422266e4 \
@@ -601,17 +680,22 @@ jiter==0.11.0 \
     --hash=sha256:f6fe0283e903ebc55f1a6cc569b8c1f3bf4abd026fed85e3ff8598a9e6f982f0 \
     --hash=sha256:fb4790497369d134a07fc763cc88888c46f734abdd66f9fdf7865038bf3a8f40 \
     --hash=sha256:ff85fc6d2a431251ad82dbd1ea953affb5a60376b62e7d6809c5cd058bb39471
-    # via openai
+    # via
+    #   openai
+    #   vtb-mortech-backend
 jmespath==1.0.1 \
     --hash=sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980 \
     --hash=sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe
     # via
     #   boto3
     #   botocore
+    #   vtb-mortech-backend
 joblib==1.5.2 \
     --hash=sha256:3faa5c39054b2f03ca547da9b2f52fde67c06240c31853f306aea97f13647b55 \
     --hash=sha256:4e1f0bdbb987e6d843c70cf43714cb276623def372df3c22fe5266b2670bc241
-    # via nltk
+    # via
+    #   nltk
+    #   vtb-mortech-backend
 llvmlite==0.44.0 \
     --hash=sha256:07667d66a5d150abed9157ab6c0b9393c9356f229784a4385c02f99e94fc94d4 \
     --hash=sha256:2fb7c4f2fb86cbae6dca3db9ab203eeea0e22d73b99bc2341cdf9de93612e930 \
@@ -619,23 +703,33 @@ llvmlite==0.44.0 \
     --hash=sha256:46224058b13c96af1365290bdfebe9a6264ae62fb79b2b55693deed11657a8bf \
     --hash=sha256:9c58867118bad04a0bb22a2e0068c693719658105e40009ffe95c7000fcde88e \
     --hash=sha256:aa0097052c32bf721a4efc03bd109d335dfa57d9bffb3d4c24cc680711b8b4fc
-    # via numba
+    # via
+    #   numba
+    #   vtb-mortech-backend
 loguru==0.7.3 \
     --hash=sha256:19480589e77d47b8d85b2c827ad95d49bf31b0dcde16593892eb51dd18706eb6 \
     --hash=sha256:31a33c10c8e1e10422bfd431aeb5d351c7cf7fa671e3c4df004162264b28220c
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 mako==1.3.10 \
     --hash=sha256:99579a6f39583fa7e5630a28c3c1f440e4e97a414b80372649c0ce338da2ea28 \
     --hash=sha256:baef24a52fc4fc514a0887ac600f9f1cff3d82c61d4d700a1fa84d597b88db59
-    # via alembic
+    # via
+    #   alembic
+    #   vtb-mortech-backend
 markdown==3.9 \
     --hash=sha256:9f4d91ed810864ea88a6f32c07ba8bee1346c0cc1f6b1f9f6c822f2a9667d280 \
     --hash=sha256:d2900fe1782bd33bdbbd56859defef70c2e78fc46668f8eb9df3128138f2cb6a
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 markdown-it-py==4.0.0 \
     --hash=sha256:87327c59b172c5011896038353a81343b6754500a08cd7a4973bb48c6d578147 \
     --hash=sha256:cb0a2b4aa34f932c007117b194e945bd74e0ec24133ceb5bac59009cda1cb9f3
-    # via rich
+    # via
+    #   rich
+    #   vtb-mortech-backend
 markupsafe==3.0.2 \
     --hash=sha256:131a3c7689c85f5ad20f9f6fb1b866f402c445b220c19fe4308c0b147ccd2ad9 \
     --hash=sha256:15ab75ef81add55874e7ab7055e9c397312385bd9ced94920f2802310c930396 \
@@ -661,14 +755,19 @@ markupsafe==3.0.2 \
     # via
     #   jinja2
     #   mako
+    #   vtb-mortech-backend
 mdurl==0.1.2 \
     --hash=sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8 \
     --hash=sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba
-    # via markdown-it-py
+    # via
+    #   markdown-it-py
+    #   vtb-mortech-backend
 mpmath==1.3.0 \
     --hash=sha256:7a28eb2a9774d00c7bc92411c19a89209d5da7c4c9a9e227be8330a23a25b91f \
     --hash=sha256:a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c
-    # via sympy
+    # via
+    #   sympy
+    #   vtb-mortech-backend
 multidict==6.6.4 \
     --hash=sha256:024ce601f92d780ca1617ad4be5ac15b501cc2414970ffa2bb2bbc2bd5a68fa5 \
     --hash=sha256:0e0558693063c75f3d952abf645c78f3c5dfdd825a41d8c4d8156fc0b0da6e7e \
@@ -710,11 +809,14 @@ multidict==6.6.4 \
     --hash=sha256:f996b87b420995a9174b2a7c1a8daf7db4750be6848b03eb5e639674f7963773
     # via
     #   aiohttp
+    #   vtb-mortech-backend
     #   yarl
 nltk==3.9.1 \
     --hash=sha256:4fa26829c5b00715afe3061398a8989dc643b92ce7dd93fb4585a70930d168a1 \
     --hash=sha256:87d127bd3de4bd89a4f81265e5fa59cb1b199b27440175370f7417d2bc7ae868
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 numba==0.61.2 \
     --hash=sha256:3a10a8fc9afac40b1eac55717cece1b8b1ac0b946f5065c89e00bde646b5b154 \
     --hash=sha256:59321215e2e0ac5fa928a8020ab00b8e57cda8a97384963ac0dfa4d4e6aa54e7 \
@@ -725,6 +827,7 @@ numba==0.61.2 \
     # via
     #   pipecat-ai
     #   resampy
+    #   vtb-mortech-backend
 numpy==2.2.6 \
     --hash=sha256:038613e9fb8c72b0a41f025a7e4c3f0b7a1b5d768ece4796b674c8f3fe13efff \
     --hash=sha256:0811bb762109d9708cca4d0b13c4f67146e3c3b7cf8d34018c722adb2d957c84 \
@@ -757,6 +860,7 @@ numpy==2.2.6 \
     #   scipy
     #   simli-ai
     #   soxr
+    #   vtb-mortech-backend
 onnxruntime==1.22.1 \
     --hash=sha256:33a7980bbc4b7f446bac26c3785652fe8730ed02617d765399e89ac7d44e0f7d \
     --hash=sha256:460487d83b7056ba98f1f7bac80287224c31d8149b15712b0d6f5078fcc33d0f \
@@ -768,7 +872,9 @@ onnxruntime==1.22.1 \
 openai==1.99.1 \
     --hash=sha256:2c9d8e498c298f51bb94bcac724257a3a6cac6139ccdfc1186c6708f7a93120f \
     --hash=sha256:8eeccc69e0ece1357b51ca0d9fb21324afee09b20c3e5b547d02445ca18a4e03
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 opencv-python==4.11.0.86 \
     --hash=sha256:03d60ccae62304860d232272e4a4fda93c39d595780cb40b161b310244b736a4 \
     --hash=sha256:085ad9b77c18853ea66283e98affefe2de8cc4c1f43eda4c100cf9b2721142ec \
@@ -777,9 +883,7 @@ opencv-python==4.11.0.86 \
     --hash=sha256:6b02611523803495003bd87362db3e1d2a0454a6a63025dc6658a9830570aa0d \
     --hash=sha256:810549cb2a4aedaa84ad9a1c92fbfdfc14090e2749cedf2c1589ad8359aa169b \
     --hash=sha256:9d05ef13d23fe97f575153558653e2d6e87103995d54e6a35db3f282fe1f9c66
-    # via
-    #   pipecat-ai
-    #   vtb-mortech-backend
+    # via vtb-mortech-backend
 orjson==3.11.3 \
     --hash=sha256:0c6d7328c200c349e3a4c6d8c83e0a5ad029bdc2d417f234152bf34842d0fc8d \
     --hash=sha256:11c6d71478e2cbea0a709e8a06365fa63da81da6498a53e4c4f065881d21ae8f \
@@ -808,11 +912,15 @@ orjson==3.11.3 \
     --hash=sha256:e44fbe4000bd321d9f3b648ae46e0196d21577cf66ae684a96ff90b1f7c93633 \
     --hash=sha256:e8f6a7a27d7b7bec81bd5924163e9af03d49bbb63013f107b48eb5d16db711bc \
     --hash=sha256:ff94112e0098470b665cb0ed06efb187154b63649403b8d5e9aedeb482b4548c
-    # via fastapi
+    # via
+    #   fastapi
+    #   vtb-mortech-backend
 packaging==25.0 \
     --hash=sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484 \
     --hash=sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f
-    # via onnxruntime
+    # via
+    #   onnxruntime
+    #   vtb-mortech-backend
 passlib==1.7.4 \
     --hash=sha256:aa6bca462b8d8bda89c70b382f0c298a20b5560af6cbfa2dce410c0a2fb669f1 \
     --hash=sha256:defd50f72b65c5402ab2c573830a6978e5f202ad0d984793c8dde2c4152ebe04
@@ -866,14 +974,18 @@ pillow==11.3.0 \
     --hash=sha256:f0f5d8f4a08090c6d6d578351a2b91acf519a54986c055af27e7a93feae6d3f1 \
     --hash=sha256:f8a5827f84d973d8636e9dc5764af4f0cf2318d26744b3d902931701b0d46653 \
     --hash=sha256:f944255db153ebb2b19c51fe85dd99ef0ce494123f21b9db4877ffdfc5590c7c
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 pipecat-ai==0.0.85 \
     --hash=sha256:24088e86f917860e66bfc6345c261a4da733e1221af10c28180b86cefe6be24a \
     --hash=sha256:be755dae2fb74057bfa6060c0e58faaa69698ba25bc57c3639f4bb4f57892ea7
     # via vtb-mortech-backend
 pipecat-ai-small-webrtc-prebuilt==1.0.0 \
     --hash=sha256:7e3d1cba420842d469ee9ecae321a086732392acb2625d5587a54d28a16ca0ea
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 propcache==0.3.2 \
     --hash=sha256:03c89c1b14a5452cf15403e291c0ccd7751d5b9736ecb2c5bab977ad6c5bcd81 \
     --hash=sha256:0a2f2235ac46a7aa25bdeb03a9e7060f6ecbd213b1f9101c43b3090ffb971ef6 \
@@ -911,6 +1023,7 @@ propcache==0.3.2 \
     --hash=sha256:fd3e6019dc1261cd0291ee8919dd91fbab7b169bb76aeef6c716833a3f65d206
     # via
     #   aiohttp
+    #   vtb-mortech-backend
     #   yarl
 proto-plus==1.26.1 \
     --hash=sha256:13285478c2dcf2abb829db158e1047e2f1e8d63a077d94263c2b88b043c75a66 \
@@ -919,6 +1032,7 @@ proto-plus==1.26.1 \
     #   google-api-core
     #   google-cloud-speech
     #   google-cloud-texttospeech
+    #   vtb-mortech-backend
 protobuf==5.29.5 \
     --hash=sha256:3f1c6468a2cfd102ff4703976138844f78ebd1fb45f49011afc5139e9e283079 \
     --hash=sha256:3f76e3a3675b4a4d867b52e4a5f5b78a2ef9565549d4037e06cf7b0942b1d3fc \
@@ -936,6 +1050,7 @@ protobuf==5.29.5 \
     #   onnxruntime
     #   pipecat-ai
     #   proto-plus
+    #   vtb-mortech-backend
 psycopg2-binary==2.9.10 \
     --hash=sha256:230eeae2d71594103cd5b93fd29d1ace6420d0b86f4778739cb1a5a32f607d1f \
     --hash=sha256:245159e7ab20a71d989da00f280ca57da7641fa2cdcf71749c193cea540a74f7 \
@@ -957,14 +1072,19 @@ pyasn1==0.6.1 \
     #   pyasn1-modules
     #   python-jose
     #   rsa
+    #   vtb-mortech-backend
 pyasn1-modules==0.4.2 \
     --hash=sha256:29253a9207ce32b64c3ac6600edc75368f98473906e8fd1043bd6b5b1de2c14a \
     --hash=sha256:677091de870a80aae844b1ca6134f54652fa2c8c5a52aa396440ac3106e941e6
-    # via google-auth
+    # via
+    #   google-auth
+    #   vtb-mortech-backend
 pycparser==2.23 ; implementation_name != 'PyPy' \
     --hash=sha256:78816d4f24add8f10a06d6f05b4d424ad9e96cfebf68a4ddc99c65c0720d00c2 \
     --hash=sha256:e5c6e8d3fbad53479cab09ac03729e0a9faf2bee3db8208a550daf5af81a5934
-    # via cffi
+    # via
+    #   cffi
+    #   vtb-mortech-backend
 pydantic==2.11.9 \
     --hash=sha256:6b8ffda597a14812a7975c90b82a8a2e777d9257aba3453f973acd3c032a18e2 \
     --hash=sha256:c42dd626f5cfc1c6950ce6205ea58c93efa406da65f479dcb4029d5934857da2
@@ -996,11 +1116,15 @@ pydantic-core==2.33.2 \
     --hash=sha256:c8e7af2f4e0194c22b5b37205bfb293d166a7344a5b0d0eaccebc376546d77d5 \
     --hash=sha256:e80b087132752f6b3d714f041ccf74403799d3b23a72722ea2e6ba2e892555b9 \
     --hash=sha256:f517ca031dfc037a9c07e748cefd8d96235088b83b4f4ba8939105d20fa1dcd6
-    # via pydantic
+    # via
+    #   pydantic
+    #   vtb-mortech-backend
 pydantic-extra-types==2.10.5 \
     --hash=sha256:1dcfa2c0cf741a422f088e0dbb4690e7bfadaaf050da3d6f80d6c3cf58a2bad8 \
     --hash=sha256:b60c4e23d573a69a4f1a16dd92888ecc0ef34fb0e655b4f305530377fa70e7a8
-    # via fastapi
+    # via
+    #   fastapi
+    #   vtb-mortech-backend
 pydantic-settings==2.10.1 \
     --hash=sha256:06f0062169818d0f5524420a360d632d5857b83cffd4d42fe29597807a1614ee \
     --hash=sha256:a60952460b99cf661dc25c29c0ef171721f98bfcb52ef8d9ea4c943d7c8cc796
@@ -1010,11 +1134,15 @@ pydantic-settings==2.10.1 \
 pyee==13.0.0 \
     --hash=sha256:48195a3cddb3b1515ce0695ed76036b5ccc2ef3a9f963ff9f77aec0139845498 \
     --hash=sha256:b391e3c5a434d1f5118a25615001dbc8f669cf410ab67d04c4d4e07c55481c37
-    # via aiortc
+    # via
+    #   aiortc
+    #   vtb-mortech-backend
 pygments==2.19.2 \
     --hash=sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887 \
     --hash=sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b
-    # via rich
+    # via
+    #   rich
+    #   vtb-mortech-backend
 pylibsrtp==0.12.0 \
     --hash=sha256:061ef1dbb5f08079ac6d7515b7e67ca48a3163e16e5b820beea6b01cb31d7e54 \
     --hash=sha256:0a8421e9fe4d20ce48d439430e55149f12b1bca1b0436741972c362c49948c0a \
@@ -1027,23 +1155,33 @@ pylibsrtp==0.12.0 \
     --hash=sha256:d2c81d152606721331ece87c80ed17159ba6da55c7c61a6b750cff67ab7f63a5 \
     --hash=sha256:ef03b4578577690f716fd023daed8914eee6de9a764fa128eda19a0e645cc032 \
     --hash=sha256:f5c3c0fb6954e7bb74dc7e6398352740ca67327e6759a199fe852dbc7b84b8ac
-    # via aiortc
+    # via
+    #   aiortc
+    #   vtb-mortech-backend
 pyloudnorm==0.1.1 \
     --hash=sha256:63cd4e197dea4e7795160ea08ed02d318091bce883e436a6dbc5963326b71e1e \
     --hash=sha256:d7f12ebdd097a464d87ce2878fc4d942f15f8233e26cc03f33fefa226f869a14
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 pyopenssl==25.3.0 \
     --hash=sha256:1fda6fc034d5e3d179d39e59c1895c9faeaf40a79de5fc4cbbfbe0d36f4a77b6 \
     --hash=sha256:c981cb0a3fd84e8602d7afc209522773b94c1c2446a3c710a75b06fe1beae329
-    # via aiortc
+    # via
+    #   aiortc
+    #   vtb-mortech-backend
 pyreadline3==3.5.4 ; sys_platform == 'win32' \
     --hash=sha256:8d57d53039a1c75adba8e50dd3d992b28143480816187ea5efbd5c78e6c885b7 \
     --hash=sha256:eaf8e6cc3c49bcccf145fc6067ba8643d1df34d604a1ec0eccbf7a18e6d3fae6
-    # via humanfriendly
+    # via
+    #   humanfriendly
+    #   vtb-mortech-backend
 python-dateutil==2.9.0.post0 \
     --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
     --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
-    # via botocore
+    # via
+    #   botocore
+    #   vtb-mortech-backend
 python-dotenv==1.1.1 \
     --hash=sha256:31f23644fe2602f88ff55e1f5c79ba497e01224ee7737937930c448e4d0e24dc \
     --hash=sha256:a8a6399716257f45be6a007360200409fce5cda2661e3dec71d23dc15f6189ab
@@ -1077,6 +1215,7 @@ pyyaml==6.0.2 \
     # via
     #   fastapi
     #   uvicorn
+    #   vtb-mortech-backend
 regex==2025.9.18 \
     --hash=sha256:05440bc172bc4b4b37fb9667e796597419404dbba62e171e1f826d7d2a9ebcef \
     --hash=sha256:06104cd203cdef3ade989a1c45b6215bf42f8b9dd705ecc220c173233f7cba41 \
@@ -1135,7 +1274,9 @@ regex==2025.9.18 \
     --hash=sha256:ec46332c41add73f2b57e2f5b642f991f6b15e50e9f86285e08ffe3a512ac39f \
     --hash=sha256:f4d97071c0ba40f0cf2a93ed76e660654c399a0a04ab7d85472239460f3da84b \
     --hash=sha256:fe5d50572bc885a0a799410a717c42b1a6b50e2f45872e2b40f4f288f9bce8a2
-    # via nltk
+    # via
+    #   nltk
+    #   vtb-mortech-backend
 requests==2.32.5 \
     --hash=sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6 \
     --hash=sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf
@@ -1146,19 +1287,23 @@ requests==2.32.5 \
 resampy==0.4.3 \
     --hash=sha256:a0d1c28398f0e55994b739650afef4e3974115edbe96cd4bb81968425e916e47 \
     --hash=sha256:ad2ed64516b140a122d96704e32bc0f92b23f45419e8b8f478e5a05f83edcebd
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 rich==14.1.0 \
     --hash=sha256:536f5f1785986d6dbdea3c75205c473f970777b4a0d6c6dd1b696aa05a3fa04f \
     --hash=sha256:e497a48b844b0320d45007cdebfeaeed8db2a4f4bcf49f15e455cfc4af11eaa8
     # via
     #   rich-toolkit
     #   typer
+    #   vtb-mortech-backend
 rich-toolkit==0.15.1 \
     --hash=sha256:36a0b1d9a135d26776e4b78f1d5c2655da6e0ef432380b5c6b523c8d8ab97478 \
     --hash=sha256:6f9630eb29f3843d19d48c3bd5706a086d36d62016687f9d0efa027ddc2dd08a
     # via
     #   fastapi-cli
     #   fastapi-cloud-cli
+    #   vtb-mortech-backend
 rignore==0.6.4 \
     --hash=sha256:0cc35773a8a9c119359ef974d0856988d4601d4daa6f532c05f66b4587cf35bc \
     --hash=sha256:145177f0e32716dc2f220b07b3cde2385b994b7ea28d5c96fbec32639e9eac6f \
@@ -1185,17 +1330,22 @@ rignore==0.6.4 \
     --hash=sha256:e55bf8f9bbd186f58ab646b4a08718c77131d28a9004e477612b0cbbd5202db2 \
     --hash=sha256:e893fdd2d7fdcfa9407d0b7600ef2c2e2df97f55e1c45d4a8f54364829ddb0ab \
     --hash=sha256:efe18096dcb1596757dfe0b412aab6d32564473ae7ee58dea0a8b4be5b1a2e3b
-    # via fastapi-cloud-cli
+    # via
+    #   fastapi-cloud-cli
+    #   vtb-mortech-backend
 rsa==4.9.1 \
     --hash=sha256:68635866661c6836b8d39430f97a996acbd61bfa49406748ea243539fe239762 \
     --hash=sha256:e7bdbfdb5497da4c07dfd35530e1a902659db6ff241e39d9953cad06ebd0ae75
     # via
     #   google-auth
     #   python-jose
+    #   vtb-mortech-backend
 s3transfer==0.14.0 \
     --hash=sha256:ea3b790c7077558ed1f02a3072fb3cb992bbbd253392f4b6e9e8976941c7d456 \
     --hash=sha256:eff12264e7c8b4985074ccce27a3b38a485bb7f7422cc8046fee9be4983e4125
-    # via boto3
+    # via
+    #   boto3
+    #   vtb-mortech-backend
 scipy==1.16.2 \
     --hash=sha256:024dd4a118cccec09ca3209b7e8e614931a6ffb804b2a601839499cb88bdf925 \
     --hash=sha256:0a17541827a9b78b777d33b623a6dcfe2ef4a25806204d08ead0768f4e529a88 \
@@ -1238,31 +1388,41 @@ scipy==1.16.2 \
     --hash=sha256:fa01f0f6a3050fa6a9771a95d5faccc8e2f5a92b4a2e5440a0fa7264a2398472 \
     --hash=sha256:fda714cf45ba43c9d3bae8f2585c777f64e3f89a2e073b668b32ede412d8f52c \
     --hash=sha256:ff4dc42bd321991fbf611c23fc35912d690f731c9914bf3af8f417e64aca0f21
-    # via pyloudnorm
+    # via
+    #   pyloudnorm
+    #   vtb-mortech-backend
 sentry-sdk==2.38.0 \
     --hash=sha256:2324aea8573a3fa1576df7fb4d65c4eb8d9929c8fa5939647397a07179eef8d0 \
     --hash=sha256:792d2af45e167e2f8a3347143f525b9b6bac6f058fb2014720b40b84ccbeb985
-    # via fastapi-cloud-cli
+    # via
+    #   fastapi-cloud-cli
+    #   vtb-mortech-backend
 shellingham==1.5.4 \
     --hash=sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686 \
     --hash=sha256:8dbca0739d487e5bd35ab3ca4b36e11c4078f3a234bfce294b0a0291363404de
-    # via typer
+    # via
+    #   typer
+    #   vtb-mortech-backend
 simli-ai==0.1.17 \
     --hash=sha256:1e09deb2da622506dd10fc2fba954c010a73680236571ad51cab81978e80dd5d \
     --hash=sha256:6259b30d3ef210d56ea9ce78e32d4e1dcbbd22ad99bed0f68f52dc193ac94b18
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
     --hash=sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81
     # via
     #   ecdsa
     #   python-dateutil
+    #   vtb-mortech-backend
 sniffio==1.3.1 \
     --hash=sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2 \
     --hash=sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc
     # via
     #   anyio
     #   openai
+    #   vtb-mortech-backend
 soxr==0.5.0.post1 \
     --hash=sha256:4704ba6b13a3f1e41d12acf192878384c1c31f71ce606829c64abdf64a8d7d32 \
     --hash=sha256:7092b9f3e8a416044e1fa138c8172520757179763b85dc53aa9504f4813cff73 \
@@ -1270,7 +1430,9 @@ soxr==0.5.0.post1 \
     --hash=sha256:b1be9fee90afb38546bdbd7bde714d1d9a8c5a45137f97478a83b65e7f3146f6 \
     --hash=sha256:bd052a66471a7335b22a6208601a9d0df7b46b8d087dce4ff6e13eed6a33a2a1 \
     --hash=sha256:fef509466c9c25f65eae0ce1e4b9ac9705d22c6038c914160ddaf459589c6e31
-    # via pipecat-ai
+    # via
+    #   pipecat-ai
+    #   vtb-mortech-backend
 sqlalchemy==2.0.43 \
     --hash=sha256:14111d22c29efad445cd5021a70a8b42f7d9152d8ba7f73304c4d82460946aaa \
     --hash=sha256:1681c21dd2ccee222c2fe0bef671d1aef7c504087c9c4e800371cfcc8ac966fc \
@@ -1288,27 +1450,35 @@ sqlalchemy==2.0.43 \
 starlette==0.48.0 \
     --hash=sha256:0764ca97b097582558ecb498132ed0c7d942f233f365b86ba37770e026510659 \
     --hash=sha256:7e8cee469a8ab2352911528110ce9088fdc6a37d9876926e73da7ce4aa4c7a46
-    # via fastapi
+    # via
+    #   fastapi
+    #   vtb-mortech-backend
 sympy==1.14.0 \
     --hash=sha256:d3d3fe8df1e5a0b42f0e7bdf50541697dbe7d23746e894990c030e2b05e72517 \
     --hash=sha256:e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5
-    # via onnxruntime
+    # via
+    #   onnxruntime
+    #   vtb-mortech-backend
 tenacity==8.5.0 \
     --hash=sha256:8bc6c0c8a09b31e6cad13c47afbed1a567518250a9a171418582ed8d9c20ca78 \
     --hash=sha256:b594c2a5945830c267ce6b79a166228323ed52718f30302c1359836112346687
-    # via google-genai
+    # via
+    #   google-genai
+    #   vtb-mortech-backend
 tqdm==4.67.1 \
     --hash=sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2 \
     --hash=sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2
     # via
     #   nltk
     #   openai
+    #   vtb-mortech-backend
 typer==0.17.4 \
     --hash=sha256:015534a6edaa450e7007eba705d5c18c3349dcea50a6ad79a5ed530967575824 \
     --hash=sha256:b77dc07d849312fd2bb5e7f20a7af8985c7ec360c45b051ed5412f64d8dc1580
     # via
     #   fastapi-cli
     #   fastapi-cloud-cli
+    #   vtb-mortech-backend
 typing-extensions==4.15.0 \
     --hash=sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466 \
     --hash=sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548
@@ -1326,12 +1496,14 @@ typing-extensions==4.15.0 \
     #   sqlalchemy
     #   typer
     #   typing-inspection
+    #   vtb-mortech-backend
 typing-inspection==0.4.1 \
     --hash=sha256:389055682238f53b04f7badcb49b989835495a96700ced5dab2d8feae4b26f51 \
     --hash=sha256:6ae134cc0203c33377d43188d4064e9b357dba58cff3185f22924610e70a9d28
     # via
     #   pydantic
     #   pydantic-settings
+    #   vtb-mortech-backend
 ujson==5.11.0 \
     --hash=sha256:04c41afc195fd477a59db3a84d5b83a871bd648ef371cf8c6f43072d89144eef \
     --hash=sha256:090b4d11b380ae25453100b722d0609d5051ffe98f80ec52853ccf8249dfd840 \
@@ -1367,7 +1539,9 @@ ujson==5.11.0 \
     --hash=sha256:e73df8648c9470af2b6a6bf5250d4744ad2cf3d774dcf8c6e31f018bdd04d764 \
     --hash=sha256:e750c436fb90edf85585f5c62a35b35082502383840962c6983403d1bd96a02c \
     --hash=sha256:f278b31a7c52eb0947b2db55a5133fbc46b6f0ef49972cd1a80843b72e135aba
-    # via fastapi
+    # via
+    #   fastapi
+    #   vtb-mortech-backend
 urllib3==2.5.0 \
     --hash=sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760 \
     --hash=sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc
@@ -1375,6 +1549,7 @@ urllib3==2.5.0 \
     #   botocore
     #   requests
     #   sentry-sdk
+    #   vtb-mortech-backend
 uvicorn==0.35.0 \
     --hash=sha256:197535216b25ff9b785e29a0b79199f55222193d47f820816e7da751e9bc8d4a \
     --hash=sha256:bc662f087f7cf2ce11a1d7fd70b90c9f98ef2e2831556dd078d131b96cc94a01
@@ -1392,7 +1567,9 @@ uvloop==0.21.0 ; platform_python_implementation != 'PyPy' and sys_platform != 'c
     --hash=sha256:bd53ecc9a0f3d87ab847503c2e1552b690362e005ab54e8a48ba97da3924c0dc \
     --hash=sha256:bfd55dfcc2a512316e65f16e503e9e450cab148ef11df4e4e679b5e8253a5281 \
     --hash=sha256:f3df876acd7ec037a3d005b3ab85a7e4110422e4d9c1571d4fc89b0fc41b6816
-    # via uvicorn
+    # via
+    #   uvicorn
+    #   vtb-mortech-backend
 watchfiles==1.1.0 \
     --hash=sha256:12b0a02a91762c08f7264e2e79542f76870c3040bbc847fb67410ab81474932a \
     --hash=sha256:12fe8eaffaf0faa7906895b4f8bb88264035b3f0243275e0bf24af0436b27259 \
@@ -1438,7 +1615,9 @@ watchfiles==1.1.0 \
     --hash=sha256:f7208ab6e009c627b7557ce55c465c98967e8caa8b11833531fdf95799372633 \
     --hash=sha256:fa257a4d0d21fcbca5b5fcba9dca5a78011cb93c0323fb8855c6d2dfbc76eb77 \
     --hash=sha256:fba9b62da882c1be1280a7584ec4515d0a6006a94d6e5819730ec2eab60ffe12
-    # via uvicorn
+    # via
+    #   uvicorn
+    #   vtb-mortech-backend
 websockets==14.2 \
     --hash=sha256:2066dc4cbcc19f32c12a5a0e8cc1b7ac734e5b64ac0a325ff8353451c4b15ef2 \
     --hash=sha256:4da98b72009836179bb596a92297b1a61bb5a830c0e483a7d0766d45070a08ad \
@@ -1458,10 +1637,13 @@ websockets==14.2 \
     #   pipecat-ai
     #   simli-ai
     #   uvicorn
+    #   vtb-mortech-backend
 win32-setctime==1.2.0 ; sys_platform == 'win32' \
     --hash=sha256:95d644c4e708aba81dc3704a116d8cbc974d70b3bdb8be1d150e36be6e9d1390 \
     --hash=sha256:ae1fdf948f5640aae05c511ade119313fb6a30d7eabe25fef9764dca5873c4c0
-    # via loguru
+    # via
+    #   loguru
+    #   vtb-mortech-backend
 yarl==1.20.1 \
     --hash=sha256:041eaa14f73ff5a8986b4388ac6bb43a77f2ea09bf1913df7a35d4646db69e53 \
     --hash=sha256:0b5ff0fbb7c9f1b1b5ab53330acbfc5247893069e7716840c8e7d5bb7355038a \
@@ -1499,4 +1681,6 @@ yarl==1.20.1 \
     --hash=sha256:f60233b98423aab21d249a30eb27c389c14929f47be8430efa7dbd91493a729d \
     --hash=sha256:f60e4ad5db23f0b96e49c018596707c3ae89f5d0bd97f0ad3684bcbad899f1e7 \
     --hash=sha256:f6342d643bf9a1de97e512e45e4b9560a043347e779a173250824f8b254bd5ce
-    # via aiohttp
+    # via
+    #   aiohttp
+    #   vtb-mortech-backend
