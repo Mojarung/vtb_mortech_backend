@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.database import SessionLocal
-from app.models import Resume, ResumeAnalysis, ProcessingStatus, ApplicationStatus
+from app.models import Resume, ResumeAnalysis, ProcessingStatus, ApplicationStatus, Interview
 from app.services.resume_analysis_service import get_resume_analysis_service
 
 logger = logging.getLogger(__name__)
@@ -82,6 +82,38 @@ class AsyncResumeProcessor:
                 resume.notes = ai_result.get('recommendation', 'Требует дополнительного анализа')
                 db.commit()
                 
+                # 6. Автоназначение интервью по порогу вакансии
+                try:
+                    vacancy = resume.vacancy
+                    if vacancy and getattr(vacancy, "auto_interview_enabled", False):
+                        threshold = getattr(vacancy, "auto_interview_threshold", None)
+                        # Извлекаем числовое значение процента соответствия из анализа (например, "82%")
+                        match_score_raw = (ai_result.get("basic_info", {}) or {}).get("match_score") or "0"
+                        try:
+                            match_percent = int(str(match_score_raw).strip().replace('%', '').split()[0])
+                        except Exception:
+                            match_percent = 0
+                        if threshold is None:
+                            threshold = 0
+                        if match_percent >= int(threshold):
+                            # Проверяем, что интервью ещё не создано
+                            existing = db.query(Interview).filter(
+                                Interview.resume_id == resume.id,
+                                Interview.vacancy_id == vacancy.id
+                            ).first()
+                            if not existing:
+                                interview = Interview(
+                                    vacancy_id=vacancy.id,
+                                    resume_id=resume.id,
+                                    scheduled_date=None,
+                                )
+                                db.add(interview)
+                                # Обновим статус заявки
+                                resume.status = ApplicationStatus.INTERVIEW_SCHEDULED
+                                db.commit()
+                except Exception as auto_e:
+                    logger.error(f"❌ Ошибка автоназначения интервью для резюме {resume_id}: {auto_e}")
+
                 logger.info(f"✅ Резюме {resume_id} успешно обработано")
                 return
             

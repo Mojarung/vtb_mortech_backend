@@ -97,6 +97,8 @@ def get_formatted_vacancies(
                 "description": vacancy.description,
                 "requirements": requirements,
                 "benefits": benefits,
+                "auto_interview_enabled": bool(getattr(vacancy, "auto_interview_enabled", False)),
+                "auto_interview_threshold": getattr(vacancy, "auto_interview_threshold", None),
                 "applicants": applicants_count,
                 "postedDate": vacancy.created_at.strftime("%Y-%m-%d"),
                 "creator_id": vacancy.creator_id,
