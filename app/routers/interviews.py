@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models import Interview, Resume, Vacancy, User
 from app.schemas import InterviewCreate, InterviewUpdate, InterviewResponse
 from app.auth import get_current_user, get_current_hr_user
+from app.models import ApplicationStatus
 
 router = APIRouter()
 
@@ -122,6 +123,12 @@ def update_interview(
     update_data = interview_update.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(interview, field, value)
+    
+    # Если добавлен summary, обновляем статус заявки
+    if interview_update.summary:
+        resume = db.query(Resume).filter(Resume.id == interview.resume_id).first()
+        if resume:
+            resume.status = ApplicationStatus.INTERVIEW_COMPLETED
     
     db.commit()
     db.refresh(interview)

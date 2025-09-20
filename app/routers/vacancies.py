@@ -15,13 +15,6 @@ def create_vacancy(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_hr_user)
 ):
-    # Проверяем, что hr_id принадлежит текущему HR или это сам HR
-    if vacancy.hr_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only create vacancies for yourself"
-        )
-    
     db_vacancy = Vacancy(**vacancy.dict(), creator_id=current_user.id)
     db.add(db_vacancy)
     db.commit()
@@ -104,6 +97,8 @@ def get_formatted_vacancies(
                 "description": vacancy.description,
                 "requirements": requirements,
                 "benefits": benefits,
+                "auto_interview_enabled": bool(getattr(vacancy, "auto_interview_enabled", False)),
+                "auto_interview_threshold": getattr(vacancy, "auto_interview_threshold", None),
                 "applicants": applicants_count,
                 "postedDate": vacancy.created_at.strftime("%Y-%m-%d"),
                 "creator_id": vacancy.creator_id,

@@ -28,7 +28,9 @@ app.add_middleware(
         "http://127.0.0.1:8000",  # Backend local
         "http://localhost", # Localhost testing
         "http://127.0.0.1", # Localhost testing
-        "https://moretech-backend-80a7fa1a3fab.herokuapp.com/" # Backend production (for Swagger UI if needed)
+        "https://moretech-backend-80a7fa1a3fab.herokuapp.com/" # Backend production (for Swagger UI if needed),
+        "https://moretech-avatar-dd041c6ae94a.herokuapp.com/",
+        "https://api.aws.us-east-1.cerebrium.ai/v4/p-d3989137/ai-avatar-service/interview/"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -58,7 +60,6 @@ app.include_router(interviews.router, prefix="/interviews", tags=["interviews"])
 app.include_router(resume_analysis.router, prefix="/resume-analysis", tags=["resume-analysis"])
 app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 app.include_router(applications.router, prefix="/applications", tags=["applications"])
-
 @app.on_event("startup")
 async def startup_event():
     try:

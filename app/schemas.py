@@ -66,12 +66,13 @@ class VacancyCreate(BaseModel):
     location: Optional[str] = None
     employment_type: Optional[str] = None
     experience_level: Optional[str] = None
-    benefits: Optional[str] = None
+    benefits: Optional[str] = None  # Условия работы (через запятую)
     company: Optional[str] = None
     status: VacancyStatus = VacancyStatus.OPEN
     original_url: Optional[str] = None
-    hr_id: int
-    auto_interview_enabled: bool = False
+    # Авто-интервью
+    auto_interview_enabled: Optional[bool] = False
+    auto_interview_threshold: Optional[int] = None
 
 class VacancyUpdate(BaseModel):
     title: Optional[str] = None
@@ -86,6 +87,9 @@ class VacancyUpdate(BaseModel):
     company: Optional[str] = None
     status: Optional[VacancyStatus] = None
     original_url: Optional[str] = None
+    # Авто-интервью
+    auto_interview_enabled: Optional[bool] = None
+    auto_interview_threshold: Optional[int] = None
 
 class VacancyResponse(BaseModel):
     id: int
@@ -101,36 +105,15 @@ class VacancyResponse(BaseModel):
     company: Optional[str] = None
     status: VacancyStatus
     original_url: Optional[str]
-    creator_id: int
-    hr_id: int
+    # Авто-интервью
     auto_interview_enabled: bool
+    auto_interview_threshold: Optional[int]
+    creator_id: int
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
-
-class ResumeResponse(BaseModel):
-    id: int
-    user_id: Optional[int]
-    vacancy_id: int
-    file_path: str
-    original_filename: str
-    uploaded_at: datetime
-    processed: bool
-    uploaded_by_hr: bool
-    status: ApplicationStatus
-    notes: Optional[str] = None
-    updated_at: datetime
-    user: Optional[UserResponse] = None
-    vacancy: Optional[VacancyResponse] = None
-    hidden_for_hr: Optional[bool] = False
-    resume_summary: Optional[str] = None
-    match_percentage: Optional[int] = None
-
-    class Config:
-        from_attributes = True
-
 class ResumeAnalysisResponse(BaseModel):
     id: int
     resume_id: int
@@ -158,6 +141,26 @@ class ResumeAnalysisResponse(BaseModel):
 
     class Config:
         from_attributes = True
+class ResumeResponse(BaseModel):
+    id: int
+    user_id: Optional[int]
+    vacancy_id: int
+    file_path: str
+    original_filename: str
+    uploaded_at: datetime
+    processed: bool
+    uploaded_by_hr: bool
+    status: ApplicationStatus
+    notes: Optional[str] = None
+    updated_at: datetime
+    user: Optional[UserResponse] = None
+    vacancy: Optional[VacancyResponse] = None
+    hidden_for_hr: Optional[bool] = False
+    analysis: Optional[ResumeAnalysisResponse] = None
+    class Config:
+        from_attributes = True
+
+
 
 class InterviewCreate(BaseModel):
     vacancy_id: int

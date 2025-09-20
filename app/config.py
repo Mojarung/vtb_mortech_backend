@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     s3_endpoint_url: str | None = Field(None, validation_alias="S3_ENDPOINT_URL")  # для совместимых провайдеров
     aws_access_key_id: str | None = Field(None, validation_alias="AWS_ACCESS_KEY_ID")
     aws_secret_access_key: str | None = Field(None, validation_alias="AWS_SECRET_ACCESS_KEY")
+    
     @model_validator(mode="after")
     def build_api_url(self) -> "Settings":
         self.heroku_ai_base_url = f'{self.heroku_ai_base_url}/v1/chat/completions'

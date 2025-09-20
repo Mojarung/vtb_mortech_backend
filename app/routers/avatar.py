@@ -11,35 +11,49 @@ from contextlib import asynccontextmanager
 from typing import Dict
 
 import uvicorn
-from services.bot import run_bot
-from fastapi import BackgroundTasks, FastAPI
+from app.services.bot import run_bot
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 from loguru import logger
-from pipecat.transports.smallwebrtc.connection import IceServer, SmallWebRTCConnection
+#from pipecat.transports.smallwebrtc.connection import IceServer, SmallWebRTCConnection
+from pipecat.transports.daily.utils import DailyRESTHelper, DailyRoomParams
 from fastapi import APIRouter
+import aiohttp
+import os
 
-
-router = APIRouter()
+daily_helpers = {}
 
 # Store connections by pc_id
-pcs_map: Dict[str, SmallWebRTCConnection] = {}
+'''pcs_map: Dict[str, SmallWebRTCConnection] = {}
 
 ice_servers = [
     IceServer(
         urls="stun:stun.l.google.com:19302",
     )
-]
+]'''
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    aiohttp_session = aiohttp.ClientSession()
+    daily_helpers["rest"] = DailyRESTHelper(
+        daily_api_key=os.getenv("DAILY_API_KEY", ""),
+        daily_api_url=os.getenv("DAILY_API_URL", "https://api.daily.co/v1"),
+        aiohttp_session=aiohttp_session,
+    )
+    yield
+    await aiohttp_session.close()
+
+router = APIRouter(lifespan=lifespan)
 
 @router.get("/", include_in_schema=False)
 async def root_redirect():
     return RedirectResponse(url="/prebuilt/")
 
 
-@router.post("/api/offer")
-async def offer(request: dict, background_tasks: BackgroundTasks):
-    pc_id = request.get("pc_id")
-    logger.info(f"rofl_answer: {request.get("rofl")}")
-    if pc_id and pc_id in pcs_map:
+@router.post("/interview/{interview_id}")
+async def offer(interview_id: int, background_tasks: BackgroundTasks):
+    #pc_id = request.get("pc_id")
+    #logger.info(f"rofl_answer: {request.get("rofl")}")
+    '''if pc_id and pc_id in pcs_map:
         pipecat_connection = pcs_map[pc_id]
         logger.info(f"Reusing existing connection for pc_id: {pc_id}")
         await pipecat_connection.renegotiate(
@@ -53,22 +67,15 @@ async def offer(request: dict, background_tasks: BackgroundTasks):
         async def handle_disconnected(webrtc_connection: SmallWebRTCConnection):
             logger.info(f"Discarding peer connection for pc_id: {webrtc_connection.pc_id}")
             pcs_map.pop(webrtc_connection.pc_id, None)
-
-        background_tasks.add_task(run_bot, pipecat_connection)
-
-    answer = pipecat_connection.get_answer()
-    # Updating the peer connection inside the map
-    pcs_map[answer["pc_id"]] = pipecat_connection
-
-    return answer
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    yield  # Run app
-    coros = [pc.disconnect() for pc in pcs_map.values()]
-    await asyncio.gather(*coros)
-    pcs_map.clear()
-
+    '''
+    room = await daily_helpers["rest"].create_room(DailyRoomParams())
+    if not room.url:
+        raise HTTPException(status_code=500, detail="Failed to create room")
+    token = await daily_helpers["rest"].get_token(room.url)
+    if not token:
+        raise HTTPException(status_code=500, detail="Failed to get token")
+    background_tasks.add_task(run_bot, interview_id, room.url, token)
+    return {"url": room.url, "token": token}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WebRTC demo")
