@@ -78,8 +78,16 @@ async def generate_offer(
     
     # Вычисляем даты
     current_date = datetime.now()
-    start_date = (current_date + timedelta(days=30)).strftime("%d %B %Y г.")
-    deadline_date = (current_date + timedelta(days=7)).strftime("%d %B %Y г.")
+    
+    # Русские названия месяцев
+    months_ru = {
+        1: "января", 2: "февраля", 3: "марта", 4: "апреля", 5: "мая", 6: "июня",
+        7: "июля", 8: "августа", 9: "сентября", 10: "октября", 11: "ноября", 12: "декабря"
+    }
+    
+    # Форматируем даты на русском
+    deadline_date = f"{current_date.day} {months_ru[current_date.month]} {current_date.year} г."
+    start_date = "с вами свяжется HR в телеграмме"
     
     # Формируем данные для оффера
     offer_data = OfferData(
@@ -94,7 +102,7 @@ async def generate_offer(
         hiring_manager_title="Руководитель отдела",
         company_address="ул. Технологическая, д. 1, Москва",  # Можно сделать настраиваемым
         company_phone="+7 (495) 123-45-67",  # Можно сделать настраиваемым
-        date=current_date.strftime("%d %B %Y г.")
+        date=deadline_date
     )
     
     try:
