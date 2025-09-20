@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from app.database import get_db
-from app.models import User, Vacancy, Resume, ApplicationStatus, ProcessingStatus
+from app.models import Interview, User, Vacancy, Resume, ApplicationStatus, ProcessingStatus
 from app.auth import get_current_user, get_current_hr_user
 from app.schemas import ResumeResponse
 from app.services.async_resume_processor import async_resume_processor
@@ -275,6 +275,13 @@ def update_application_status(
     
     try:
         status_enum = ApplicationStatus(new_status)
+        if status_enum == ApplicationStatus.INTERVIEW_SCHEDULED:
+            interview = Interview(
+                resume_id=application.id,
+                vacancy_id=application.vacancy_id
+            )
+            db.add(interview)
+            db.commit()
         print(f"✅ Backend: Status enum created: {status_enum}")
     except ValueError as e:
         print(f"❌ Backend: Invalid status {new_status}: {e}")
