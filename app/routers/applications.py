@@ -276,12 +276,17 @@ def update_application_status(
     try:
         status_enum = ApplicationStatus(new_status)
         if status_enum == ApplicationStatus.INTERVIEW_SCHEDULED:
-            interview = Interview(
-                resume_id=application.id,
-                vacancy_id=application.vacancy_id
-            )
-            db.add(interview)
-            db.commit()
+            # Создаем интервью только если его еще нет для этой заявки
+            existing_interview = db.query(Interview).filter(
+                Interview.resume_id == application.id
+            ).first()
+            if not existing_interview:
+                interview = Interview(
+                    resume_id=application.id,
+                    vacancy_id=application.vacancy_id
+                )
+                db.add(interview)
+                db.commit()
         print(f"✅ Backend: Status enum created: {status_enum}")
     except ValueError as e:
         print(f"❌ Backend: Invalid status {new_status}: {e}")
@@ -356,6 +361,7 @@ def get_application_stats(
     pending_applications = db.query(Resume).filter(
         Resume.status == ApplicationStatus.PENDING
     ).count()
+    reviewed_applications = total_applications - pending_applications
     accepted_applications = db.query(Resume).filter(
         Resume.status == ApplicationStatus.ACCEPTED
     ).count()
