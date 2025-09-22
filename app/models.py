@@ -2,6 +2,8 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, Foreign
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime, date
+from sqlalchemy.orm import mapped_column
+from pgvector.sqlalchemy import Vector
 import enum
 
 Base = declarative_base()
@@ -62,8 +64,18 @@ class User(Base):
     ready_to_relocate = Column(Boolean, default=False)  # Готов к переезду
     employment_type = Column(Enum(EmploymentType))  # Тип занятости
     education = Column(JSON)  # Образование (массив объектов)
-    skills = Column(JSON)  # Навыки (массив строк)
     work_experience = Column(JSON)  # Опыт работы (массив объектов)
+    
+    # Новые поля для профиля
+    foreign_languages = Column(JSON)  # Иностранные языки (массив объектов)
+    other_competencies = Column(JSON)  # Прочие компетенции (массив строк)
+    programming_languages = Column(JSON)  # Языки программирования (массив строк)
+    
+    # Флаги для отслеживания взаимодействия с резюме
+    resume_upload_seen = Column(Boolean, default=False)  # Видел страницу загрузки резюме
+    resume_upload_skipped = Column(Boolean, default=False)  # Пропустил загрузку резюме
+    
+    xp = Column(Integer, default=0)
     
     vacancies = relationship("Vacancy", back_populates="creator")
     resumes = relationship("Resume", back_populates="user")
@@ -177,3 +189,158 @@ class Interview(Base):
     
     vacancy = relationship("Vacancy", back_populates="interviews")
     resume = relationship("Resume", back_populates="interviews")
+
+class WorkExperience(Base):
+    __tablename__ = "work_experiences"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    role = Column(String, nullable=False)  # Роль/Должность
+    period_start = Column(Date)  # Начало работы
+    period_end = Column(Date)  # Конец работы (null если текущая работа)
+    company = Column(String, nullable=False)  # Место работы
+    responsibilities = Column(Text)  # Обязанности
+    is_current = Column(Boolean, default=False)  # Текущая работа
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = relationship("User")
+
+class QASession(Base):
+    __tablename__ = "qa_sessions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    status = Column(String, default="active")  # active, completed, skipped
+    current_question_index = Column(Integer, default=0)
+    questions = Column(JSON)  # Список вопросов
+    answers = Column(JSON)  # Ответы пользователя
+    profile_updates = Column(JSON)  # Обновления профиля на основе ответов
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = relationship("User")
+
+class Vec_profile(Base):
+    """
+    Векторные профили пользователей для семантического поиска.
+    Хранит embedding представления профилей для AI-поиска кандидатов.
+    """
+    __tablename__ = "vec_profiles"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    vector = mapped_column(Vector(1024))  # bge-m3 embeddings (1024 измерения)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User")
+
+
+class DevelopmentRoadmap(Base):
+    __tablename__ = "development_roadmaps"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    roadmap = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User")
+
+class ChatSession(Base):
+    """
+    Сессии чата пользователя с AI-ассистентом.
+    Каждая сессия содержит историю сообщений и контекст для персонализации.
+    """
+    __tablename__ = "chat_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String, default="Новый чат")  # Заголовок чата для отображения
+    status = Column(String, default="active")  # active, completed, archived
+    
+    # Контекст для персонализированных ответов
+    context_data = Column(JSON)  # Сохраненный контекст (навыки, цели, предпочтения)
+    last_activity_at = Column(DateTime, default=datetime.utcnow)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User")
+    messages = relationship("ChatMessage", back_populates="session", cascade="all, delete-orphan")
+
+class ChatMessage(Base):
+    """
+    Отдельные сообщения в чате с AI-ассистентом.
+    Хранит как сообщения пользователя, так и ответы ассистента.
+    """
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer, ForeignKey("chat_sessions.id"), nullable=False)
+    
+    # Тип сообщения: user (от пользователя), assistant (от AI), system (системное)
+    role = Column(String, nullable=False)  # user, assistant, system
+    content = Column(Text, nullable=False)  # Содержание сообщения
+    
+    # Дополнительные данные для ассистента
+    message_metadata = Column(JSON)  # Дополнительная информация (рекомендации, ссылки, действия)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    session = relationship("ChatSession", back_populates="messages")
+
+class AssistantRecommendation(Base):
+    """
+    Рекомендации AI-ассистента пользователю.
+    Хранит специфические рекомендации: курсы, вакансии, действия.
+    """
+    __tablename__ = "assistant_recommendations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    session_id = Column(Integer, ForeignKey("chat_sessions.id"), nullable=True)
+    
+    # Тип рекомендации: course, vacancy, skill, action
+    recommendation_type = Column(String, nullable=False)
+    title = Column(String, nullable=False)  # Название рекомендации
+    description = Column(Text)  # Описание рекомендации
+    
+    # Данные рекомендации (курс, вакансия, навык, действие)
+    recommendation_data = Column(JSON, nullable=False)
+    
+    # Статус выполнения: pending, in_progress, completed, dismissed
+    status = Column(String, default="pending")
+    priority = Column(Integer, default=0)  # Приоритет (чем выше, тем важнее)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User")
+    session = relationship("ChatSession")
+
+class Course(Base):
+    """
+    База данных курсов для рекомендаций AI-ассистентом.
+    Загружается из bd_course.txt и используется для персонализированных советов.
+    """
+    __tablename__ = "courses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)  # Название курса
+    category = Column(String, nullable=False)  # Категория (Backend Development, Frontend, etc.)
+    description = Column(Text)  # Описание курса
+    
+    # Навыки, которые развивает курс
+    skills = Column(JSON)  # Массив навыков, которые дает курс
+    technologies = Column(JSON)  # Технологии, которые изучаются
+    level = Column(String)  # junior, middle, senior, all
+    duration_hours = Column(Integer)  # Длительность в часах
+    
+    # SEO и поиск
+    search_keywords = Column(JSON)  # Ключевые слова для поиска
+    
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

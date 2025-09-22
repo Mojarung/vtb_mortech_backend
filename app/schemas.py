@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, EmailStr, field_validator
+from typing import Optional, List, Dict, Any, Union
 from datetime import datetime, date
 from app.models import UserRole, VacancyStatus, InterviewStatus, ApplicationStatus, EmploymentType
 
@@ -33,8 +33,33 @@ class UserResponse(BaseModel):
     ready_to_relocate: Optional[bool] = None
     employment_type: Optional[EmploymentType] = None
     education: Optional[List[Dict[str, Any]]] = None
-    skills: Optional[List[str]] = None
     work_experience: Optional[List[Dict[str, Any]]] = None
+    # Новые поля для профиля
+    foreign_languages: Optional[List[Dict[str, Any]]] = None
+    other_competencies: Optional[List[str]] = None
+    programming_languages: Optional[List[str]] = None
+    # Флаги для отслеживания взаимодействия с резюме
+    resume_upload_seen: Optional[bool] = None
+    resume_upload_skipped: Optional[bool] = None
+    # XP пользователя
+    xp: Optional[int] = None
+
+    @field_validator('programming_languages', 'other_competencies', mode='before')
+    @classmethod
+    def parse_string_to_list(cls, v):
+        if isinstance(v, str):
+            return [item.strip() for item in v.split(',') if item.strip()]
+        return v
+    
+    @field_validator('foreign_languages', mode='before')
+    @classmethod
+    def parse_foreign_languages(cls, v):
+        if isinstance(v, str):
+            # Если это строка, пытаемся разделить по запятым
+            items = [item.strip() for item in v.split(',') if item.strip()]
+            # Преобразуем в список объектов с языком и уровнем
+            return [{"language": item, "level": "Не указан"} for item in items]
+        return v
 
     class Config:
         from_attributes = True
@@ -54,7 +79,6 @@ class UserProfileUpdate(BaseModel):
     ready_to_relocate: Optional[bool] = None
     employment_type: Optional[EmploymentType] = None
     education: Optional[List[Dict[str, Any]]] = None
-    skills: Optional[List[str]] = None
     work_experience: Optional[List[Dict[str, Any]]] = None
 
 class VacancyCreate(BaseModel):
@@ -235,3 +259,411 @@ class ResumeAnalyzeResponse(BaseModel):
     extended_info: ExtendedInfo
     resume_quality: ResumeQuality
     anti_manipulation: AntiManipulation
+
+class ApplicationCreate(BaseModel):
+    cover_letter: Optional[str] = None
+
+# QA Session Schemas - Схемы для вопросно-ответных сессий
+class QAQuestion(BaseModel):
+    id: str
+    question: str
+    field: str  # Поле профиля, которое уточняется
+    required: bool = False
+    max_attempts: int = 3
+    current_attempt: int = 0
+
+class QAAnswer(BaseModel):
+    question_id: str
+    answer: str
+    attempt: int
+
+class QASessionCreate(BaseModel):
+    user_id: int
+
+class QASessionResponse(BaseModel):
+    id: int
+    user_id: int
+    status: str
+    current_question_index: int
+    questions: Optional[List[QAQuestion]] = None
+    answers: Optional[List[QAAnswer]] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class QASessionUpdate(BaseModel):
+    answer: str
+    skip: bool = False
+
+# AI HR Candidate Search Schemas - Новые схемы для поиска кандидатов через AI
+class CandidateSearchRequest(BaseModel):
+    """
+    Схема запроса для поиска кандидатов через AI-ассистента.
+    HR отправляет описание вакансии и получает ранжированный список кандидатов.
+    """
+    job_title: str  # Название должности
+    job_description: str  # Полное описание вакансии 
+    required_skills: Optional[List[str]] = []  # Обязательные навыки для первичной фильтрации
+    additional_requirements: Optional[str] = None  # Дополнительные требования в свободной форме
+    experience_level: Optional[str] = None  # Уровень опыта (junior, middle, senior)
+    max_candidates: Optional[int] = 20  # Максимальное количество кандидатов для обработки через LLM
+    threshold_filter_limit: Optional[int] = 50  # Пороговое значение для дополнительной фильтрации
+
+class CandidateMatch(BaseModel):
+    """
+    Информация о найденном кандидате с оценкой соответствия
+    """
+    user_id: int  # ID пользователя
+    full_name: str  # Полное имя кандидата
+    email: str  # Email кандидата  
+    current_position: Optional[str] = None  # Текущая позиция
+    experience_years: Optional[str] = None  # Опыт работы
+    key_skills: Optional[List[str]] = []  # Ключевые навыки
+    programming_languages: Optional[List[str]] = []  # Языки программирования
+    match_score: float  # Оценка соответствия (0.0 - 1.0)
+    ai_summary: str  # AI-саммари: почему подходит/не подходит
+    strengths: Optional[List[str]] = []  # Сильные стороны кандидата
+    growth_areas: Optional[List[str]] = []  # Области для роста
+    similarity_score: Optional[float] = None  # Векторная схожесть профиля с вакансией
+
+class CandidateSearchResponse(BaseModel):
+    """
+    Результат поиска кандидатов
+    """
+    job_title: str  # Название вакансии 
+    total_profiles_found: int  # Общее количество найденных профилей после фильтрации
+    processed_by_ai: int  # Количество профилей, обработанных через AI
+    filters_applied: List[str]  # Примененные фильтры
+    candidates: List[CandidateMatch]  # Список кандидатов, отсортированный по релевантности
+    processing_time_seconds: Optional[float] = None  # Время обработки запроса
+
+# XP Schemas - Схемы для системы опыта
+class XPFieldBreakdown(BaseModel):
+    """Детализация XP по конкретному полю профиля"""
+    xp: int
+    filled: bool
+    description: str
+    potential_xp: Optional[int] = None
+    # Для сложных полей (массивов)
+    items_count: Optional[int] = None
+    items_counted: Optional[int] = None
+    base_xp: Optional[int] = None
+    items_xp: Optional[int] = None
+    potential_base_xp: Optional[int] = None
+    potential_per_item: Optional[int] = None
+    max_items: Optional[int] = None
+
+class NextBonus(BaseModel):
+    """Информация о следующем бонусе за заполненность"""
+    threshold: int
+    bonus: int
+    percentage_needed: float
+
+class XPInfoResponse(BaseModel):
+    """Детальная информация о XP пользователя"""
+    user_id: int
+    current_xp: int
+    calculated_xp: int
+    completion_percentage: float
+    filled_fields: int
+    total_fields: int
+    completion_bonus: int
+    base_xp: int
+    next_bonus: Optional[NextBonus]
+    xp_breakdown: Dict[str, XPFieldBreakdown]
+
+class XPUpdateResponse(BaseModel):
+    """Ответ при обновлении XP"""
+    message: str
+    old_xp: int
+    new_xp: int
+    xp_gained: int
+    completion_percentage: float
+
+# AI Assistant Schemas - Схемы для чата с AI-ассистентом
+
+class ChatSessionCreate(BaseModel):
+    """Создание новой сессии чата с ассистентом"""
+    title: Optional[str] = "Новый чат с ассистентом"
+
+class ChatSessionResponse(BaseModel):
+    """Информация о сессии чата"""
+    id: int
+    user_id: int  
+    title: str
+    status: str
+    context_data: Optional[Dict[str, Any]] = None
+    last_activity_at: datetime
+    created_at: datetime
+    updated_at: datetime
+    messages_count: Optional[int] = 0  # Количество сообщений в сессии
+
+    class Config:
+        from_attributes = True
+
+class ChatMessageCreate(BaseModel):
+    """Отправка сообщения в чат"""
+    session_id: int
+    content: str
+    # role автоматически устанавливается как 'user' при создании
+
+class ChatMessageResponse(BaseModel):
+    """Сообщение в чате"""
+    id: int
+    session_id: int
+    role: str  # user, assistant, system
+    content: str
+    metadata: Optional[Dict[str, Any]] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class AssistantChatRequest(BaseModel):
+    """
+    Основной запрос к AI-ассистенту.
+    Используется для отправки сообщения и получения ответа с рекомендациями.
+    """
+    message: str  # Сообщение пользователя
+    session_id: Optional[int] = None  # ID существующей сессии (если None - создается новая)
+    context: Optional[Dict[str, Any]] = None  # Дополнительный контекст
+
+class AssistantChatResponse(BaseModel):
+    """
+    Ответ AI-ассистента с рекомендациями и дополнительными данными
+    """
+    session_id: int  # ID сессии чата
+    message_id: int  # ID сообщения ассистента
+    response: str  # Текстовый ответ ассистента
+    
+    # Дополнительные данные ответа
+    recommendations: Optional[List["RecommendationResponse"]] = []  # Рекомендации курсов/вакансий
+    actions: Optional[List[Dict[str, Any]]] = []  # Предлагаемые действия
+    quick_replies: Optional[List[str]] = []  # Быстрые ответы
+    
+    # Метаинформация
+    response_type: str = "general"  # general, career_guidance, course_recommendation, etc.
+    confidence: Optional[float] = None  # Уверенность в ответе (0.0-1.0)
+
+class CourseResponse(BaseModel):
+    """Информация о курсе"""
+    id: int
+    title: str
+    category: str
+    description: Optional[str] = None
+    skills: Optional[List[str]] = []
+    technologies: Optional[List[str]] = []
+    level: Optional[str] = None
+    duration_hours: Optional[int] = None
+    search_keywords: Optional[List[str]] = []
+
+    class Config:
+        from_attributes = True
+
+class RecommendationResponse(BaseModel):
+    """Рекомендация от AI-ассистента"""
+    id: int
+    recommendation_type: str  # course, vacancy, skill, action
+    title: str
+    description: Optional[str] = None
+    recommendation_data: Dict[str, Any]  # Детальные данные рекомендации
+    status: str
+    priority: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class CourseRecommendationRequest(BaseModel):
+    """
+    Запрос рекомендаций курсов на основе профиля пользователя.
+    Специальный эндпоинт для получения персонализированных рекомендаций.
+    """
+    goal: Optional[str] = None  # Цель развития (например, "стать Senior Python Developer")  
+    current_skills: Optional[List[str]] = []  # Текущие навыки
+    preferred_level: Optional[str] = None  # junior, middle, senior
+    max_recommendations: Optional[int] = 5
+
+class CourseRecommendationResponse(BaseModel):
+    """Ответ с рекомендованными курсами"""
+    courses: List[CourseResponse]
+    explanation: str  # Объяснение выбора курсов
+    learning_path: Optional[List[str]] = []  # Рекомендуемый порядок изучения
+    estimated_time: Optional[str] = None  # Примерное время на изучение
+
+class CareerGuidanceRequest(BaseModel):
+    """
+    Запрос карьерного совета.
+    Специальный эндпоинт для вопросов о карьерном росте.
+    """
+    question: str  # Вопрос пользователя
+    current_position: Optional[str] = None  # Текущая позиция
+    target_position: Optional[str] = None  # Желаемая позиция
+    session_id: Optional[int] = None
+
+class CareerGuidanceResponse(BaseModel):
+    """Ответ с карьерным советом"""
+    advice: str  # Основной совет
+    action_plan: List[str]  # Пошаговый план действий
+    courses: List[CourseResponse]  # Рекомендуемые курсы
+    profile_completeness: Optional[float] = None  # Процент заполненности профиля
+    missing_profile_fields: Optional[List[str]] = []  # Незаполненные поля профиля
+    
+class VacancyRecommendationResponse(BaseModel):
+    """Рекомендация подходящих вакансий"""
+    vacancy_id: int
+    title: str
+    company: Optional[str] = None
+    match_percentage: float  # Процент соответствия (0.0-100.0)
+    match_explanation: str  # Объяснение соответствия
+    missing_skills: Optional[List[str]] = []  # Навыки, которых не хватает
+
+class AssistantStatsResponse(BaseModel):
+    """Статистика работы ассистента для пользователя"""
+    total_sessions: int
+    total_messages: int
+    recommendations_given: int
+    recommendations_completed: int
+    favorite_topics: Optional[List[str]] = []  # Самые частые темы вопросов
+
+# ====== HR AI Assistant Schemas ======
+
+class HRCandidateSearchRequest(BaseModel):
+    """
+    Запрос HR AI-ассистента для поиска кандидатов.
+    Используется в чат-интерфейсе для HR-менеджеров.
+    """
+    message: str  # Сообщение от HR (например, "найди Python разработчиков")
+    session_id: Optional[int] = None  # ID сессии чата
+    context: Optional[Dict[str, Any]] = None  # Дополнительный контекст
+
+class HRVacancyGenerationRequest(BaseModel):
+    """
+    Запрос на генерацию описания вакансии HR AI-ассистентом.
+    """
+    position: str  # Название позиции
+    requirements: Optional[str] = None  # Требования к кандидату
+    level: Optional[str] = None  # junior, middle, senior
+    additional_info: Optional[str] = None  # Дополнительная информация
+    session_id: Optional[int] = None
+
+class HRAnalyticsRequest(BaseModel):
+    """
+    Запрос аналитики по кандидатам для HR.
+    """
+    period_days: Optional[int] = 30  # Период для анализа в днях
+    filters: Optional[Dict[str, Any]] = None  # Фильтры для анализа
+    session_id: Optional[int] = None
+
+class HRCandidateCard(BaseModel):
+    """
+    Карточка кандидата для отображения в HR интерфейсе.
+    Расширенная версия CandidateMatch с дополнительной информацией.
+    """
+    user_id: int
+    full_name: str
+    email: str
+    current_position: Optional[str] = None
+    experience_years: Optional[str] = None
+    location: Optional[str] = None
+    about: Optional[str] = None
+    
+    # Навыки и технологии
+    key_skills: List[str] = []
+    programming_languages: List[str] = []
+    other_competencies: List[str] = []
+    
+    # Образование и опыт
+    education: Optional[List[Dict[str, Any]]] = []
+    work_experience: Optional[List[Dict[str, Any]]] = []
+    
+    # AI анализ
+    match_score: float
+    similarity_score: Optional[float] = None
+    ai_summary: Optional[str] = None
+    strengths: List[str] = []
+    growth_areas: List[str] = []
+    
+    # Рекомендации для HR
+    hr_notes: Optional[str] = None  # Заметки HR
+    contact_priority: Optional[int] = None  # Приоритет контакта (1-5)
+    fit_assessment: Optional[str] = None  # Общая оценка соответствия
+
+class HRAnalyticsResponse(BaseModel):
+    """
+    Ответ с HR аналитикой по кандидатам.
+    """
+    total_candidates: int
+    filled_profiles: int
+    profile_completion_rate: float
+    
+    # Топ навыки и технологии
+    top_skills: List[str] = []
+    top_programming_languages: List[str] = []
+    
+    # Распределение по уровням
+    experience_distribution: Dict[str, int] = {}
+    
+    # Географическое распределение
+    location_distribution: Optional[Dict[str, int]] = {}
+    
+    # Зарплатные ожидания
+    salary_statistics: Optional[Dict[str, Any]] = {}
+    
+    # Рекомендации и инсайты
+    recommendations: List[str] = []
+    insights: List[str] = []
+
+class HRVacancyGenerationResponse(BaseModel):
+    """
+    Ответ с сгенерированным описанием вакансии.
+    """
+    generated_description: str
+    structured_data: Optional[Dict[str, Any]] = None  # Структурированные данные
+    suggestions: List[str] = []  # Предложения по улучшению
+    recommended_skills: List[str] = []  # Рекомендуемые навыки
+    salary_recommendations: Optional[Dict[str, Any]] = None  # Рекомендации по зарплате
+    market_insights: Optional[str] = None  # Инсайты рынка труда
+
+class HRAssistantChatResponse(BaseModel):
+    """
+    Ответ HR AI-ассистента с расширенными данными для HR.
+    """
+    session_id: int
+    message_id: int
+    response: str
+    
+    # HR-специфичные данные
+    candidates_data: Optional[List[HRCandidateCard]] = []  # Карточки кандидатов
+    analytics_data: Optional[HRAnalyticsResponse] = None  # Аналитические данные
+    vacancy_data: Optional[HRVacancyGenerationResponse] = None  # Данные вакансии
+    
+    # Стандартные поля ассистента
+    recommendations: Optional[List[RecommendationResponse]] = []
+    actions: Optional[List[Dict[str, Any]]] = []
+    quick_replies: Optional[List[str]] = []
+    
+    response_type: str = "general"  # general, candidate_search, analytics, vacancy_generation
+    confidence: Optional[float] = None
+
+class HRAssistantStatsResponse(BaseModel):
+    """
+    Статистика работы HR AI-ассистента.
+    """
+    total_sessions: int
+    total_messages: int
+    
+    # HR-специфичная статистика
+    candidates_searched: int  # Количество поисков кандидатов
+    vacancies_generated: int  # Количество сгенерированных вакансий
+    analytics_requests: int  # Количество запросов аналитики
+    
+    # Популярные запросы
+    top_search_queries: Optional[List[str]] = []
+    top_skills_searched: Optional[List[str]] = []
+    
+    # Эффективность
+    average_candidates_per_search: Optional[float] = None
+    successful_searches_percentage: Optional[float] = None
